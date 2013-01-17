@@ -1,0 +1,64 @@
+{% block datasource_render_attributes %}
+{% for name, attribute in attributes %}
+ {% spaceless %}{{ name }}="{{ attribute }}"{% endspaceless %}
+{% endfor %}
+{% endblock %}
+
+{% block datasource_filter %}
+{% spaceless %}
+    {% for field in fields %}
+        {{ datasource_field_widget(field) }}
+    {% endfor %}
+{% endspaceless %}
+{% endblock %}
+
+{% block datasource_field %}
+{% spaceless %}
+    {% if form is not empty %}
+        <div{{ datasource_render_attributes(options.form_wrapper_attributes) }}>
+            {% for child in form.children %}
+                {% for subchild in child.children %}
+                    {{ form_label(subchild) }}
+                    {{ form_errors(subchild) }}
+                    {{ form_widget(subchild) }}
+                {% endfor %}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endspaceless %}
+{% endblock %}
+
+{% block datasource_sort %}
+{% spaceless %}
+    {{ datasource_sort_ascending_widget(field) }}
+    {{ datasource_sort_descending_widget(field) }}
+{% endspaceless %}
+{% endblock %}
+
+{% block datasource_sort_ascending %}
+{% spaceless %}
+{{ datasource_anchor(anchor.sort_ascending) }}
+{% endspaceless %}
+{% endblock %}
+
+{% block datasource_anchor %}
+{% spaceless %}
+<a{% if attributes.href is not defined %} href="{{ url(route, additional_parameters|merge(parameters)) }}"{% endif %}{{ datasource_render_attributes(attributes) }}>{{ content|raw }}</a>
+{% endspaceless %}
+{% endblock %}
+
+{% block datasource_pagination %}
+{% spaceless %}
+{{ datasource_anchor(previous_anchor) }}
+{% if first_anchor is defined %}
+    {{ datasource_anchor(first_anchor) }}
+{% endif %}
+{% for anchor in page_anchors %}
+    {{ datasource_anchor(anchor) }}
+{% endfor %}
+{% if last_anchor is defined %}
+    {{ datasource_anchor(last_anchor) }}
+{% endif %}
+{{ datasource_anchor(next_anchor) }}
+{% endspaceless %}
+{% endblock %}

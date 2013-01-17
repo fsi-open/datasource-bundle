@@ -1,0 +1,24 @@
+{
+    "name": "fsi/datasource-bundle",
+    "type": "symfony-bundle",
+    "description": "FSi DataSource Bundle",
+    "keywords": ["fsi", "symfony", "datasource", "datasource-bundle", "bundle"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lukasz Cybula",
+            "email": "lukasz@fsi.pl"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3.3",
+        "twig/twig": ">=1.2,<2.0-dev",
+        "symfony/framework-bundle" : "2.1.*",
+        "fsi/datasource": "0.9.*"
+    },
+    "autoload": {
+        "psr-0": { "FSi\\Bundle\\DataSourceBundle\\": "" }
+    },
+    "target-dir" : "FSi/Bundle/DataSourceBundle"
+}
