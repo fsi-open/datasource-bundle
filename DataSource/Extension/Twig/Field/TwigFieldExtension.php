@@ -111,16 +111,19 @@ class TwigFieldExtension extends FieldAbstractExtension
             $this->validateAnchorOptions($field->getOption('sort_anchors'))
         );
         $fieldOptions['sort_anchors']['attributes'] = array_merge($fieldOptions['anchors']['attributes'], $fieldOptions['sort_anchors']['attributes']);
+        $fieldOptions['sort_anchors']['additional_parameters'] = array_merge($fieldOptions['anchors']['additional_parameters'], $fieldOptions['sort_anchors']['additional_parameters']);
         $fieldOptions['sort_ascending_anchor'] = array_merge(
             $fieldOptions['sort_anchors'],
             $this->validateAnchorOptions($field->getOption('sort_ascending_anchor'))
         );
         $fieldOptions['sort_ascending_anchor']['attributes'] = array_merge($fieldOptions['sort_anchors']['attributes'], $fieldOptions['sort_ascending_anchor']['attributes']);
+        $fieldOptions['sort_ascending_anchor']['additional_parameters'] = array_merge($fieldOptions['sort_anchors']['additional_parameters'], $fieldOptions['sort_ascending_anchor']['additional_parameters']);
         $fieldOptions['sort_descending_anchor'] = array_merge(
             $fieldOptions['sort_anchors'],
             $this->validateAnchorOptions($field->getOption('sort_descending_anchor'))
         );
         $fieldOptions['sort_descending_anchor']['attributes'] = array_merge($fieldOptions['sort_anchors']['attributes'], $fieldOptions['sort_descending_anchor']['attributes']);
+        $fieldOptions['sort_descending_anchor']['additional_parameters'] = array_merge($fieldOptions['sort_anchors']['additional_parameters'], $fieldOptions['sort_descending_anchor']['additional_parameters']);
 
         if (isset($fieldOptions['form_wrapper_attributes']['id'])) {
             $fieldOptions['form_wrapper_attributes']['id'] = $id . $fieldOptions['form_wrapper_attributes']['id'];

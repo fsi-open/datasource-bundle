@@ -164,26 +164,31 @@ class DataSourceExtension extends \Twig_Extension
             $this->validateAnchorOptions($options['page_anchors'])
         );
         $options['page_anchors']['attributes'] = array_merge($options['anchors']['attributes'], $options['page_anchors']['attributes']);
+        $options['page_anchors']['additional_parameters'] = array_merge($options['anchors']['additional_parameters'], $options['page_anchors']['additional_parameters']);
         $options['previous_anchor'] = array_merge(
             $options['page_anchors'],
             $this->validateAnchorOptions($options['previous_anchor'])
         );
         $options['previous_anchor']['attributes'] = array_merge($options['page_anchors']['attributes'], $options['previous_anchor']['attributes']);
+        $options['previous_anchor']['additional_parameters'] = array_merge($options['page_anchors']['additional_parameters'], $options['previous_anchor']['additional_parameters']);
         $options['next_anchor'] = array_merge(
             $options['page_anchors'],
             $this->validateAnchorOptions($options['next_anchor'])
         );
         $options['next_anchor']['attributes'] = array_merge($options['page_anchors']['attributes'], $options['next_anchor']['attributes']);
+        $options['next_anchor']['additional_parameters'] = array_merge($options['page_anchors']['additional_parameters'], $options['next_anchor']['additional_parameters']);
         $options['first_anchor'] = array_merge(
                 $options['page_anchors'],
                 $this->validateAnchorOptions($options['first_anchor'])
         );
         $options['first_anchor']['attributes'] = array_merge($options['page_anchors']['attributes'], $options['first_anchor']['attributes']);
+        $options['first_anchor']['additional_parameters'] = array_merge($options['page_anchors']['additional_parameters'], $options['first_anchor']['additional_parameters']);
         $options['last_anchor'] = array_merge(
                 $options['page_anchors'],
                 $this->validateAnchorOptions($options['last_anchor'])
         );
         $options['last_anchor']['attributes'] = array_merge($options['page_anchors']['attributes'], $options['last_anchor']['attributes']);
+        $options['last_anchor']['additional_parameters'] = array_merge($options['page_anchors']['additional_parameters'], $options['last_anchor']['additional_parameters']);
         return $options;
     }
 
