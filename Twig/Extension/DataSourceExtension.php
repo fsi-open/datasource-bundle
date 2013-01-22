@@ -206,19 +206,18 @@ class DataSourceExtension extends \Twig_Extension
             $delta = ceil($options['max_pages'] / 2);
 
             if ($current - $delta > $pageCount - $options['max_pages']) {
-                $pages = range($pageCount - $options['max_pages'] + 1, $pageCount);
+                $pages = range(max($pageCount - $options['max_pages'] + 1, 1), $pageCount);
             } else {
                 if ($current - $delta < 0) {
                     $delta = $current;
                 }
 
                 $offset = $current - $delta;
-                $pages = range($offset + 1, $offset + $options['max_pages']);
+                $pages = range($offset + 1, min($offset + $options['max_pages'], $pageCount));
             }
         } else {
             $pages = range(1, $pageCount);
         }
-
         $pagesAnchors = array();
         foreach ($pages as $page) {
             $pagesAnchors[$page] = $options['page_anchors'];
