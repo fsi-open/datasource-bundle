@@ -133,7 +133,7 @@ How to display created datasource in twig template:
 
 There are several additional field options added by DataSourceBundle.
 
-* ``form_wrapper_attributes`` - array of attributes added to the wrapper tag for this filter field
+* ``filter_wrapper_attributes`` - array of attributes added to the wrapper tag for this filter field
 * ``sort_anchors`` - options affecting all sorting anchors for this field
     * ``active_class`` - class added to the class attribute when current anchor is active
     * ``route`` - route for generating anchor URLs, default: current route extracted from ``router`` service

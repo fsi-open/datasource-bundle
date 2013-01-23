@@ -7,7 +7,7 @@
 {% block datasource_filter %}
 {% spaceless %}
     {% for field in fields %}
-        {{ datasource_field_widget(field) }}
+        {{ datasource_field_widget(field, options) }}
     {% endfor %}
 {% endspaceless %}
 {% endblock %}
@@ -15,7 +15,7 @@
 {% block datasource_field %}
 {% spaceless %}
     {% if form is not empty %}
-        <div{{ datasource_render_attributes(options.form_wrapper_attributes) }}>
+        <div{{ datasource_render_attributes(options.filter_wrapper_attributes) }}>
             {% for child in form.children %}
                 {% for subchild in child.children %}
                     {{ form_label(subchild) }}

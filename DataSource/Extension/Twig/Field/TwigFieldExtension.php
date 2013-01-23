@@ -54,14 +54,14 @@ class TwigFieldExtension extends FieldAbstractExtension
     {
         $optionsResolver
             ->setDefaults(array(
-                'form_wrapper_attributes' => array(),
+                'filter_wrapper_attributes' => array(),
                 'anchors' => array(),
                 'sort_anchors' => array(),
                 'sort_ascending_anchor' => array(),
                 'sort_descending_anchor' => array(),
             ))
             ->setAllowedTypes(array(
-                'form_wrapper_attributes' => 'array',
+                'filter_wrapper_attributes' => 'array',
                 'anchors' => 'array',
                 'sort_anchors' => 'array',
                 'sort_ascending_anchor' => 'array',
@@ -104,7 +104,7 @@ class TwigFieldExtension extends FieldAbstractExtension
 
         $fieldOptions = array();
 
-        $fieldOptions['form_wrapper_attributes'] = $field->getOption('form_wrapper_attributes');
+        $fieldOptions['filter_wrapper_attributes'] = $field->getOption('filter_wrapper_attributes');
         $fieldOptions['anchors'] = $this->validateAnchorOptions($field->getOption('anchors'));
         $fieldOptions['sort_anchors'] = array_merge(
             $fieldOptions['anchors'],
@@ -125,8 +125,8 @@ class TwigFieldExtension extends FieldAbstractExtension
         $fieldOptions['sort_descending_anchor']['attributes'] = array_merge($fieldOptions['sort_anchors']['attributes'], $fieldOptions['sort_descending_anchor']['attributes']);
         $fieldOptions['sort_descending_anchor']['additional_parameters'] = array_merge($fieldOptions['sort_anchors']['additional_parameters'], $fieldOptions['sort_descending_anchor']['additional_parameters']);
 
-        if (isset($fieldOptions['form_wrapper_attributes']['id'])) {
-            $fieldOptions['form_wrapper_attributes']['id'] = $id . $fieldOptions['form_wrapper_attributes']['id'];
+        if (isset($fieldOptions['filter_wrapper_attributes']['id'])) {
+            $fieldOptions['filter_wrapper_attributes']['id'] = $id . $fieldOptions['filter_wrapper_attributes']['id'];
         }
 
         if (isset($fieldOptions['sort_ascending_anchor']['attributes']['id']))

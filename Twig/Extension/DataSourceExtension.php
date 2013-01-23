@@ -70,15 +70,21 @@ class DataSourceExtension extends \Twig_Extension
             }
         }
 
+        unset($options['exclude']);
+
         return $this->template->renderBlock('datasource_filter', array(
             'datasource' => $view,
-            'fields' => $fields
+            'fields' => $fields,
+            'options' => $options
         ));
     }
 
     public function datasourceField(FieldViewInterface $fieldView, $options = array())
     {
-        $fieldOptions = array_merge($fieldView->getAttribute('options'), $options);
+        $originalFieldOptions = $fieldView->getAttribute('options');
+        $fieldOptions = array_merge($originalFieldOptions, $options);
+        if (isset($options['filter_wrapper_attributes']) && is_array($options['filter_wrapper_attributes']))
+            $fieldOptions['filter_wrapper_attributes'] = array_merge($originalFieldOptions['filter_wrapper_attributes'], $options['filter_wrapper_attributes']);
 
         return $this->template->renderBlock('datasource_field', array(
             'form' => $fieldView->getAttribute('form'),
