@@ -74,8 +74,7 @@ class DefaultController extends Controller
     public function indexAction()
     {
         $driverFactory = $this->get('datasource.driver.doctrine.factory');
-        $driver = $driverFactory->createDriver('FSiSiteBundle:News');
-        $dataSource = $this->get('datasource.factory')->createDataSource($driver);
+        $dataSource = $driverFactory->createDataSource('FSiSiteBundle:News');
 
         $datasource
             ->addField('title', 'text', 'like')

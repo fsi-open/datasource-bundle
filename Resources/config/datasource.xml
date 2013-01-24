@@ -28,6 +28,7 @@
         <!-- DoctrineFactory -->
         <service id="datasource.driver.doctrine.factory" class="%datasource.driver.doctrine.factory.class%">
             <argument type="service" id="doctrine" />
+            <argument type="service" id="datasource.factory" />
             <argument type="collection">
                 <!--
                 We don't need to be able to add more extensions.
