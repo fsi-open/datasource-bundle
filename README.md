@@ -124,24 +124,60 @@ How to display created datasource in twig template:
 {# display the data #}
 
 <div class="pagination">
-    {{ datasource_pagination_widget(datasource, {max_pages: 10, page_anchors: {active_class: 'active'} }) }}
+    {{ datasource_pagination_widget(datasource, {max_pages: 10, active_class: 'active', disabled_class: 'disabled' }) }}
 </div>
 
 ```
+
+## Registered Twig functions ##
+
+This bundle registers a few new widgets' functions available in Twig templates. These are:
+
+``datasource_filter_widget(DataSourceViewInterface $view, array $exclude = array(), array $vars = array())``
+
+* ``$view`` - Datasource's view to render` using ``datasource_field_widget``.
+* ``$exclude`` - Array of names of fields that should be omitted during rendering. It could be usefull when some fields should be
+  rendered in completely different place than this function is called from.
+* ``$vars`` - Array of additional variables passed to Twig block rendering context.
+
+It renders datasource filter using ``datasource_filter`` twig block which could be overloaded in user bundle.
+
+``datasource_field_widget(FieldViewInterface $fieldView, array $vars = array())``
+
+* ``$fieldView`` - Field to render (it's form) using ``form_label``, ``form_errors`` and ``form_widget``.
+* ``$vars`` - Array of additional variables passed to Twig block rendering context.
+
+It renders form fields for only one field using ``datasource_field` twig block  which could be overloaded in user bundle.
+
+``datasource_sort_asc_url(FieldViewInterface $fieldView, $route = null, array $additionalParameters = array())``
+
+This function returns URL which will sort datasource's results first by specified field in ascending order. You can optionally
+pass ``$additionalParameters`` to be merged with parameters from datasource. If ``$route`` is not specified then currently active
+route will be taken.
+
+``datasource_sort_desc_url(FieldViewInterface $fieldView, $route = null, array $additionalParameters = array())``
+
+This function returns URL which will sort datasource's results first by specified field in descending order. You can optionally
+pass ``$additionalParameters`` to be merged with parameters from datasource. If ``$route`` is not specified then currently active
+route will be taken.
+
+``datasource_pagination_widget(DataSourceViewInterface $view, $options = array())``
+
+This function renders pagination control for specified datasource. It can take following options:
+
+* ``max_pages`` - Maximum number of pages that can be rendered at once not including first, previous, next and last pages
+* ``wrapper_attributes`` - Array of attributes that will be added to the ``<ul>`` tag wrapping the pagination widget
+* ``route`` - Route which will be used to generate all URLs
+* ``additional_parameters`` - Array of parameters that will be merged with parameters generated from datasource
+* ``active_class`` - Class attribute that will be added to the ``<li>`` wrapper tag for currently active page URL
+* ``disabled_class`` - Class attribute that will be added to the ``<li>`` wrapper tag for disabled page URL
+* ``translation_domain`` - Translation domain which will be used to translate anchors' contents 
 
 ## Additional Field Options ##
 
 There are several additional field options added by DataSourceBundle.
 
 * ``filter_wrapper_attributes`` - array of attributes added to the wrapper tag for this filter field
-* ``sort_anchors`` - options affecting all sorting anchors for this field
-    * ``active_class`` - class added to the class attribute when current anchor is active
-    * ``route`` - route for generating anchor URLs, default: current route extracted from ``router`` service
-    * ``additional_parameters`` - additional parameters merged with datasource parameters during URL generation
-    * ``attributes`` - array of attributes that are added to the anchor tag
-    * ``content`` - content of an anchor, default: ``''``
-* ``sort_ascending_anchor`` - options affecting only anchor for sorting ascending wich will overwrite those from ``sort_anchors``
-* ``sort_descending_anchor`` - options affecting only anchor for sorting descending wich will overwrite those from ``sort_anchors``
 
 Example usage: 
 
@@ -149,19 +185,10 @@ Example usage:
 <?php
 
     $dataSource->add("title", "text", "like", array(
-        "form_wrapper_attributes" => array(
+        "filter_wrapper_attributes" => array(
             "class" => "div",
             "id" => "wrapper"
         ),
-        "sort_anchors" => array(
-            "active_class" => "active"
-        ),
-        "sort_ascending_anchor" => array(
-            "content" => "&uarr;"
-        ),
-        "sort_descending_anchor" => array(
-            "content" => "&darr;"
-        )
     );
 
 ```

@@ -46,95 +46,77 @@ class DataSourceExtension extends \Twig_Extension
         return array(
             'datasource_filter_widget' => new \Twig_Function_Method($this, 'datasourceFilter', array('is_safe' => array('html'))),
             'datasource_field_widget' => new \Twig_Function_Method($this, 'datasourceField', array('is_safe' => array('html'))),
-            'datasource_sort_widget' =>  new \Twig_Function_Method($this, 'datasourceSort', array('is_safe' => array('html'))),
-            'datasource_sort_ascending_widget' =>  new \Twig_Function_Method($this, 'datasourceSortAscending', array('is_safe' => array('html'))),
-            'datasource_sort_descending_widget' =>  new \Twig_Function_Method($this, 'datasourceSortDescending', array('is_safe' => array('html'))),
+            'datasource_sort_asc_url' =>  new \Twig_Function_Method($this, 'datasourceSortAscendingUrl', array('is_safe' => array('html'))),
+            'datasource_sort_desc_url' =>  new \Twig_Function_Method($this, 'datasourceSortDescendingUrl', array('is_safe' => array('html'))),
             'datasource_pagination_widget' =>  new \Twig_Function_Method($this, 'datasourcePagination', array('is_safe' => array('html'))),
             'datasource_anchor' =>  new \Twig_Function_Method($this, 'datasourceAnchor', array('is_safe' => array('html'))),
             'datasource_render_attributes' =>  new \Twig_Function_Method($this, 'datasourceAttributes', array('is_safe' => array('html'))),
         );
     }
 
-    public function datasourceFilter(DataSourceViewInterface $view, $options = array())
+    public function datasourceFilter(DataSourceViewInterface $view, array $exclude = array(), array $vars = array())
     {
-        if (!isset($options['exclude']))
-            $options['exclude'] = array();
-
-        if (!is_array($options['exclude']))
-            $options['exclude'] = array($options['exclude']);
-
         $fields = array();
         foreach ($view as $fieldView) {
-            if (!in_array($fieldView->getField()->getName(), $options['exclude'])) {
+            if (!in_array($fieldView->getField()->getName(), $exclude)) {
                 $fields[$fieldView->getField()->getName()] = $fieldView;
             }
         }
 
-        unset($options['exclude']);
-
         return $this->template->renderBlock('datasource_filter', array(
             'datasource' => $view,
             'fields' => $fields,
-            'options' => $options
+            'vars' => $vars
         ));
     }
 
-    public function datasourceField(FieldViewInterface $fieldView, $options = array())
+    public function datasourceField(FieldViewInterface $fieldView, array $vars = array())
     {
-        $originalFieldOptions = $fieldView->getAttribute('options');
-        $fieldOptions = array_merge($originalFieldOptions, $options);
-        if (isset($options['filter_wrapper_attributes']) && is_array($options['filter_wrapper_attributes']))
-            $fieldOptions['filter_wrapper_attributes'] = array_merge($originalFieldOptions['filter_wrapper_attributes'], $options['filter_wrapper_attributes']);
+        $filter_wrapper_attributes = $fieldView->getAttribute('filter_wrapper_attributes');
 
         return $this->template->renderBlock('datasource_field', array(
             'form' => $fieldView->getAttribute('form'),
-            'options' => $fieldOptions
+            'filter_wrapper_attributes' => $filter_wrapper_attributes,
+            'vars' => $vars
         ));
     }
 
-    public function datasourceSort(FieldViewInterface $fieldView, $options = array())
+    public function datasourceSortAscendingUrl(FieldViewInterface $fieldView, $route = null, array $additionalParameters = array())
     {
-        if (!$fieldView->getAttribute('ordering_disabled')) {
-            $options = array_merge($fieldView->getAttribute('options'), $options);
-            return $this->template->renderBlock('datasource_sort', array(
-                'field' => $fieldView,
-            ));
-        }
+        $router = $this->container->get('router');
+        return $router->generate(
+            isset($route)?$route:$this->getCurrentRoute(),
+            array_merge($additionalParameters, $fieldView->getAttribute('ordering_ascending'))
+        );
     }
 
-    public function datasourceSortAscending(FieldViewInterface $fieldView, $options = array())
+    public function datasourceSortDescendingUrl(FieldViewInterface $fieldView, $route = null, array $additionalParameters = array())
     {
-        if (!$fieldView->getAttribute('ordering_disabled')) {
-            $options = array_merge($fieldView->getAttribute('options'), $options);
-            $options['sort_ascending_anchor']['parameters'] = $fieldView->getAttribute('ordering_ascending');
-            return $this->template->renderBlock('datasource_anchor', $options['sort_ascending_anchor']);
-        }
-    }
-
-    public function datasourceSortDescending(FieldViewInterface $fieldView, $options = array())
-    {
-        if (!$fieldView->getAttribute('ordering_disabled')) {
-            $options = array_merge($fieldView->getAttribute('options'), $options);
-            $options['sort_descending_anchor']['parameters'] = $fieldView->getAttribute('ordering_descending');
-            return $this->template->renderBlock('datasource_anchor', $options['sort_descending_anchor']);
-        }
+        $router = $this->container->get('router');
+        return $router->generate(
+            isset($route)?$route:$this->getCurrentRoute(),
+            array_merge($additionalParameters, $fieldView->getAttribute('ordering_descending'))
+        );
     }
 
     private function validateAnchorOptions(array $options)
     {
         $optionsResolver = new OptionsResolver();
         $optionsResolver
-            ->setOptional(array('route', 'active_class'))
+            ->setOptional(array('route', 'active_class', 'href'))
             ->setDefaults(array(
                 'route' => $this->getCurrentRoute(),
                 'additional_parameters' => array(),
                 'attributes' => array(),
+                'wrapper_attributes' => array(),
                 'content' => ''
             ))
             ->setAllowedTypes(array(
+                'href' => 'string',
                 'route' => 'string',
                 'additional_parameters' => 'array',
                 'attributes' => 'array',
+                'wrapper_attributes' => 'array',
                 'active_class' => 'string',
                 'content' => 'string'
             ));
@@ -147,60 +129,30 @@ class DataSourceExtension extends \Twig_Extension
         $optionsResolver
             ->setOptional(array('max_pages'))
             ->setDefaults(array(
-                'anchors' => array(),
-                'page_anchors' => array(),
-                'previous_anchor' => array(),
-                'next_anchor' => array(),
-                'first_anchor' => array(),
-                'last_anchor' => array(),
+                'route' => $this->getCurrentRoute(),
+                'additional_parameters' => array(),
+                'wrapper_attributes' => array(),
+                'active_class' => 'active',
+                'disabled_class' => 'disabled',
+                'translation_domain' => 'DataSourceBundle'
             ))
             ->setAllowedTypes(array(
+                'route' => 'string',
+                'additional_parameters' => 'array',
                 'max_pages' => 'int',
-                'anchors' => 'array',
-                'page_anchors' => 'array',
-                'previous_anchor' => 'array',
-                'next_anchor' => 'array',
-                'first_anchor' => 'array',
-                'last_anchor' => 'array',
+                'wrapper_attributes' => 'array',
+                'active_class' => 'string',
+                'disabled_class' => 'string',
+                'translation_domain' => 'string'
             ));
         $options = $optionsResolver->resolve($options);
-        $options['anchors'] = $this->validateAnchorOptions($options['anchors']);
-        $options['page_anchors'] = array_merge(
-            $options['anchors'],
-            $this->validateAnchorOptions($options['page_anchors'])
-        );
-        $options['page_anchors']['attributes'] = array_merge($options['anchors']['attributes'], $options['page_anchors']['attributes']);
-        $options['page_anchors']['additional_parameters'] = array_merge($options['anchors']['additional_parameters'], $options['page_anchors']['additional_parameters']);
-        $options['previous_anchor'] = array_merge(
-            $options['page_anchors'],
-            $this->validateAnchorOptions($options['previous_anchor'])
-        );
-        $options['previous_anchor']['attributes'] = array_merge($options['page_anchors']['attributes'], $options['previous_anchor']['attributes']);
-        $options['previous_anchor']['additional_parameters'] = array_merge($options['page_anchors']['additional_parameters'], $options['previous_anchor']['additional_parameters']);
-        $options['next_anchor'] = array_merge(
-            $options['page_anchors'],
-            $this->validateAnchorOptions($options['next_anchor'])
-        );
-        $options['next_anchor']['attributes'] = array_merge($options['page_anchors']['attributes'], $options['next_anchor']['attributes']);
-        $options['next_anchor']['additional_parameters'] = array_merge($options['page_anchors']['additional_parameters'], $options['next_anchor']['additional_parameters']);
-        $options['first_anchor'] = array_merge(
-                $options['page_anchors'],
-                $this->validateAnchorOptions($options['first_anchor'])
-        );
-        $options['first_anchor']['attributes'] = array_merge($options['page_anchors']['attributes'], $options['first_anchor']['attributes']);
-        $options['first_anchor']['additional_parameters'] = array_merge($options['page_anchors']['additional_parameters'], $options['first_anchor']['additional_parameters']);
-        $options['last_anchor'] = array_merge(
-                $options['page_anchors'],
-                $this->validateAnchorOptions($options['last_anchor'])
-        );
-        $options['last_anchor']['attributes'] = array_merge($options['page_anchors']['attributes'], $options['last_anchor']['attributes']);
-        $options['last_anchor']['additional_parameters'] = array_merge($options['page_anchors']['additional_parameters'], $options['last_anchor']['additional_parameters']);
         return $options;
     }
 
     public function datasourcePagination(DataSourceViewInterface $view, $options = array())
     {
         $options = $this->validateOptions($options);
+        $router = $this->container->get('router');
 
         $pagesParams = $view->getAttribute('pages');
         $current = $view->getAttribute('page_current');
@@ -225,81 +177,31 @@ class DataSourceExtension extends \Twig_Extension
             $pages = range(1, $pageCount);
         }
         $pagesAnchors = array();
+        $pagesUrls = array();
         foreach ($pages as $page) {
-            $pagesAnchors[$page] = $options['page_anchors'];
-            $pagesAnchors[$page]['content'] = $page;
-            if (!isset($pagesAnchors[$page]['attributes']['title']))
-                $pagesAnchors[$page]['attributes']['title'] = $page;
-            if ($page != $current) {
-                $pagesAnchors[$page]['parameters'] = $pagesParams[$page];
-            } else {
-                $pagesAnchors[$page]['attributes']['href'] = '#';
-                if (isset($options['page_anchors']['active_class'])) {
-                    $pagesAnchors[$page]['attributes']['class'] =
-                        (isset($pagesAnchors[$page]['attributes']['class']) ? ($pagesAnchors[$page]['attributes']['class'] . ' ') : '' ) .
-                        $options['page_anchors']['active_class'];
-                }
-            }
+            $pagesUrls[$page] = $router->generate($options['route'], array_merge($options['additional_parameters'], $pagesParams[$page]));
         }
 
         $viewData = array(
+            'wrapper_attributes' => $options['wrapper_attributes'],
             'page_anchors' => $pagesAnchors,
+            'pages_urls' => $pagesUrls,
+            'first' => 1,
+            'first_url' => $router->generate($options['route'], array_merge($options['additional_parameters'], $pagesParams[1])),
+            'last' => $pageCount,
+            'last_url' => $router->generate($options['route'], array_merge($options['additional_parameters'], $pagesParams[$pageCount])),
+            'current' => $current,
+            'active_class' => $options['active_class'],
+            'disabled_class' => $options['disabled_class'],
+            'translation_domain' => $options['translation_domain']
         );
-
-        $viewData['first_anchor'] = array_merge($options['page_anchors'], $options['first_anchor']);
         if ($current != 1) {
-            $viewData['first_anchor']['parameters'] = $pagesParams[1];
-        } else {
-            $viewData['first_anchor']['attributes']['href'] = '#';
-            if (isset($viewData['first_anchor']['active_class'])) {
-                $viewData['first_anchor']['attributes']['class'] =
-                    (isset($viewData['first_anchor']['attributes']['class']) ? ($viewData['first_anchor']['attributes']['class'] . ' ') : '' ) .
-                    $viewData['first_anchor']['active_class'];
-            }
+            $viewData['prev'] = $current - 1;
+            $viewData['prev_url'] = $router->generate($options['route'], array_merge($options['additional_parameters'], $pagesParams[$current - 1]));
         }
-        if (!isset($viewData['first_anchor']['attributes']['title']))
-            $viewData['first_anchor']['attributes']['title'] = '1';
-
-        $viewData['last_anchor'] = array_merge($options['page_anchors'], $options['last_anchor']);
-        if ($current + 1 != $pageCount) {
-            $viewData['last_anchor']['parameters'] = $pagesParams[$pageCount];
-        } else {
-            $viewData['last_anchor']['attributes']['href'] = '#';
-            if (isset($viewData['last_anchor']['active_class'])) {
-                $viewData['last_anchor']['attributes']['class'] =
-                    (isset($viewData['last_anchor']['attributes']['class']) ? ($viewData['last_anchor']['attributes']['class'] . ' ') : '' ) .
-                    $viewData['last_anchor']['active_class'];
-            }
-        }
-        if (!isset($viewData['last_anchor']['attributes']['title']))
-            $viewData['last_anchor']['attributes']['title'] = (string) $pageCount;
-
-        $viewData['previous_anchor'] = array_merge($options['page_anchors'], $options['previous_anchor']);
-        if ($current - 1 > 0) {
-            $viewData['previous_anchor']['parameters'] = $pagesParams[$current - 1];
-            if (!isset($viewData['previous_anchor']['attributes']['title']))
-                $viewData['previous_anchor']['attributes']['title'] = (string) ($current - 1);
-        } else {
-            $viewData['previous_anchor']['attributes']['href'] = '#';
-            if (isset($viewData['previous_anchor']['active_class'])) {
-                $viewData['previous_anchor']['attributes']['class'] =
-                    (isset($viewData['previous_anchor']['attributes']['class']) ? ($viewData['previous_anchor']['attributes']['class'] . ' ') : '' ) .
-                    $viewData['previous_anchor']['active_class'];
-            }
-        }
-
-        $viewData['next_anchor'] = array_merge($options['page_anchors'], $options['next_anchor']);
-        if ($current + 1 <= $pageCount) {
-            $viewData['next_anchor']['parameters'] = $pagesParams[$current + 1];
-            if (!isset($viewData['next_anchor']['attributes']['title']))
-                $viewData['next_anchor']['attributes']['title'] = (string) ($current + 1);
-        } else {
-            $viewData['next_anchor']['attributes']['href'] = '#';
-            if (isset($viewData['next_anchor']['active_class'])) {
-                $viewData['next_anchor']['attributes']['class'] =
-                    (isset($viewData['next_anchor']['attributes']['class']) ? ($viewData['next_anchor']['attributes']['class'] . ' ') : '' ) .
-                    $viewData['next_anchor']['active_class'];
-            }
+        if ($current != $pageCount) {
+            $viewData['next'] = $current + 1;
+            $viewData['next_url'] = $router->generate($options['route'], array_merge($options['additional_parameters'], $pagesParams[$current + 1]));
         }
 
         return $this->template->renderBlock('datasource_pagination', $viewData);

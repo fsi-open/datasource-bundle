@@ -20,7 +20,6 @@
 
         <service id="datasource.field.subscriber.twig" class="FSi\Bundle\DataSourceBundle\DataSource\Extension\Twig\Field\TwigFieldExtension">
             <tag name="datasource.driver.doctrine.field.subscriber" alias="twig" />
-            <argument type="service" id="service_container" />
         </service>
     </services>
 

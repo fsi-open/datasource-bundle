@@ -23,16 +23,6 @@ use FSi\Component\DataSource\Event\FieldEvent;
 class TwigFieldExtension extends FieldAbstractExtension
 {
     /**
-     * @var ContainerInterace
-     */
-    private $container;
-
-    public function __construct(ContainerInterface $container)
-    {
-        $this->container = $container;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function getExtendedFieldTypes()
@@ -54,41 +44,11 @@ class TwigFieldExtension extends FieldAbstractExtension
     {
         $optionsResolver
             ->setDefaults(array(
-                'filter_wrapper_attributes' => array(),
-                'anchors' => array(),
-                'sort_anchors' => array(),
-                'sort_ascending_anchor' => array(),
-                'sort_descending_anchor' => array(),
+                'filter_wrapper_attributes' => array()
             ))
             ->setAllowedTypes(array(
-                'filter_wrapper_attributes' => 'array',
-                'anchors' => 'array',
-                'sort_anchors' => 'array',
-                'sort_ascending_anchor' => 'array',
-                'sort_descending_anchor' => 'array'
+                'filter_wrapper_attributes' => 'array'
             ));
-    }
-
-    private function validateAnchorOptions(array $options)
-    {
-        $optionsResolver = new OptionsResolver();
-        $optionsResolver
-            ->setOptional(array('active_class'))
-            ->setDefaults(array(
-                'route' => $this->getCurrentRoute(),
-                'additional_parameters' => array(),
-                'attributes' => array(),
-                'content' => ''
-            ))
-            ->setAllowedTypes(array(
-                'route' => 'string',
-                'additional_parameters' => 'array',
-                'attributes' => 'array',
-                'active_class' => 'string',
-                'content' => 'string'
-            ));
-
-        return $optionsResolver->resolve($options);
     }
 
     /**
@@ -102,61 +62,11 @@ class TwigFieldExtension extends FieldAbstractExtension
         $dataSourceName = $field->getDataSource()->getName();
         $id = $dataSourceName . '_' . $field->getName();
 
-        $fieldOptions = array();
-
-        $fieldOptions['filter_wrapper_attributes'] = $field->getOption('filter_wrapper_attributes');
-        $fieldOptions['anchors'] = $this->validateAnchorOptions($field->getOption('anchors'));
-        $fieldOptions['sort_anchors'] = array_merge(
-            $fieldOptions['anchors'],
-            $this->validateAnchorOptions($field->getOption('sort_anchors'))
-        );
-        $fieldOptions['sort_anchors']['attributes'] = array_merge($fieldOptions['anchors']['attributes'], $fieldOptions['sort_anchors']['attributes']);
-        $fieldOptions['sort_anchors']['additional_parameters'] = array_merge($fieldOptions['anchors']['additional_parameters'], $fieldOptions['sort_anchors']['additional_parameters']);
-        $fieldOptions['sort_ascending_anchor'] = array_merge(
-            $fieldOptions['sort_anchors'],
-            $this->validateAnchorOptions($field->getOption('sort_ascending_anchor'))
-        );
-        $fieldOptions['sort_ascending_anchor']['attributes'] = array_merge($fieldOptions['sort_anchors']['attributes'], $fieldOptions['sort_ascending_anchor']['attributes']);
-        $fieldOptions['sort_ascending_anchor']['additional_parameters'] = array_merge($fieldOptions['sort_anchors']['additional_parameters'], $fieldOptions['sort_ascending_anchor']['additional_parameters']);
-        $fieldOptions['sort_descending_anchor'] = array_merge(
-            $fieldOptions['sort_anchors'],
-            $this->validateAnchorOptions($field->getOption('sort_descending_anchor'))
-        );
-        $fieldOptions['sort_descending_anchor']['attributes'] = array_merge($fieldOptions['sort_anchors']['attributes'], $fieldOptions['sort_descending_anchor']['attributes']);
-        $fieldOptions['sort_descending_anchor']['additional_parameters'] = array_merge($fieldOptions['sort_anchors']['additional_parameters'], $fieldOptions['sort_descending_anchor']['additional_parameters']);
-
-        if (isset($fieldOptions['filter_wrapper_attributes']['id'])) {
-            $fieldOptions['filter_wrapper_attributes']['id'] = $id . $fieldOptions['filter_wrapper_attributes']['id'];
+        $filter_wrapper_attributes = $field->getOption('filter_wrapper_attributes');
+        if (isset($filter_wrapper_attributes['id'])) {
+            $filter_wrapper_attributes['id'] = $id . $filter_wrapper_attributes['id'];
         }
 
-        if (isset($fieldOptions['sort_ascending_anchor']['attributes']['id']))
-            $fieldOptions['sort_ascending_anchor']['attributes']['id'] = $id . '_asc' . $fieldOptions['sort_ascending_anchor']['attributes']['id'];
-
-        if (isset($fieldOptions['sort_descending_anchor']['attributes']['id']))
-            $fieldOptions['sort_descending_anchor']['attributes']['id'] = $id . '_asc' . $fieldOptions['sort_descending_anchor']['attributes']['id'];
-
-        if ($view->getAttribute('ordering_current') === 'asc') {
-            $fieldOptions['sort_ascending_anchor']['attributes']['href'] = '#';
-            $fieldOptions['sort_ascending_anchor']['attributes']['class'] =
-                (isset($fieldOptions['sort_ascending_anchor']['attributes']['class']) ? ($fieldOptions['sort_ascending_anchor']['attributes']['class'] . ' ') : '' ) .
-                $fieldOptions['sort_ascending_anchor']['active_class'];
-        }
-
-        if ($view->getAttribute('ordering_current') === 'desc') {
-            $fieldOptions['sort_descending_anchor']['attributes']['href'] = '#';
-            $fieldOptions['sort_descending_anchor']['attributes']['class'] =
-                (isset($fieldOptions['sort_descending_anchor']['attributes']['class']) ? ($fieldOptions['sort_descending_anchor']['attributes']['class'] . ' ') : '' ) .
-                $fieldOptions['sort_descending_anchor']['active_class'];
-        }
-
-        $view->setAttribute('options', $fieldOptions);
-    }
-
-    private function getCurrentRoute()
-    {
-        $router = $this->container->get('router');
-        $request = $this->container->get('request');
-        $parameters = $router->match($request->getPathInfo());
-        return $parameters['_route'];
+        $view->setAttribute('filter_wrapper_attributes', $filter_wrapper_attributes);
     }
 }
