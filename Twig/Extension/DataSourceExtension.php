@@ -58,8 +58,8 @@ class DataSourceExtension extends \Twig_Extension
     {
         $fields = array();
         foreach ($view as $fieldView) {
-            if (!in_array($fieldView->getField()->getName(), $exclude)) {
-                $fields[$fieldView->getField()->getName()] = $fieldView;
+            if (!in_array($fieldView->getName(), $exclude)) {
+                $fields[$fieldView->getName()] = $fieldView;
             }
         }
 
