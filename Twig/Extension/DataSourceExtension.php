@@ -5,6 +5,7 @@ namespace FSi\Bundle\DataSourceBundle\Twig\Extension;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use FSi\Component\DataSource\DataSourceViewInterface;
+use FSi\Component\DataSource\Exception\DataSourceException;
 use FSi\Component\DataSource\Field\FieldViewInterface;
 
 class DataSourceExtension extends \Twig_Extension
@@ -83,20 +84,28 @@ class DataSourceExtension extends \Twig_Extension
 
     public function datasourceSortAscendingUrl(FieldViewInterface $fieldView, $route = null, array $additionalParameters = array())
     {
-        $router = $this->container->get('router');
-        return $router->generate(
-            isset($route)?$route:$this->getCurrentRoute(),
-            array_merge($additionalParameters, $fieldView->getAttribute('ordering_ascending'))
-        );
+        if ($fieldView->hasAttribute('parameters_sort_ascending')) {
+            $router = $this->container->get('router');
+            return $router->generate(
+                isset($route)?$route:$this->getCurrentRoute(),
+                array_merge($additionalParameters, $fieldView->getAttribute('parameters_sort_ascending'))
+            );
+        } else {
+            throw new DataSourceException(sprintf("DataSource's field %s is not sortable", $fieldView->getName()));
+        }
     }
 
     public function datasourceSortDescendingUrl(FieldViewInterface $fieldView, $route = null, array $additionalParameters = array())
     {
-        $router = $this->container->get('router');
-        return $router->generate(
-            isset($route)?$route:$this->getCurrentRoute(),
-            array_merge($additionalParameters, $fieldView->getAttribute('ordering_descending'))
-        );
+        if ($fieldView->getAttribute('parameters_sort_descending')) {
+            $router = $this->container->get('router');
+            return $router->generate(
+                isset($route)?$route:$this->getCurrentRoute(),
+                array_merge($additionalParameters, $fieldView->getAttribute('parameters_sort_descending'))
+            );
+        } else {
+            throw new DataSourceException(sprintf("DataSource's field %s is not sortable", $fieldView->getName()));
+        }
     }
 
     private function validateAnchorOptions(array $options)
@@ -154,8 +163,8 @@ class DataSourceExtension extends \Twig_Extension
         $options = $this->validateOptions($options);
         $router = $this->container->get('router');
 
-        $pagesParams = $view->getAttribute('pages');
-        $current = $view->getAttribute('page_current');
+        $pagesParams = $view->getAttribute('parameters_pages');
+        $current = $view->getAttribute('page');
         $pageCount = count($pagesParams);
         if ($pageCount < 2)
             return;
