@@ -1,0 +1,6 @@
+datasource:
+    pagination:
+        first: "first"
+        prev: "previous"
+        next: "next"
+        last: "last"

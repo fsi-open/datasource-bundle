@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="datasource.twig.extension.class">FSi\Bundle\DataSourceBundle\Twig\Extension\DataSourceExtension</parameter>
+    </parameters>
+
+    <services>
+        <service id="datasource.twig.extension" class="%datasource.twig.extension.class%" public="false">
+            <tag name="twig.extension" />
+            <argument type="service" id="service_container" />
+            <argument>%datasource.twig.template%</argument>
+        </service>
+
+        <service id="datasource.subscriber.twig" class="FSi\Bundle\DataSourceBundle\DataSource\Extension\Twig\TwigExtension">
+            <tag name="datasource.subscriber" alias="twig" />
+        </service>
+
+        <service id="datasource.field.subscriber.twig" class="FSi\Bundle\DataSourceBundle\DataSource\Extension\Twig\Field\TwigFieldExtension">
+            <tag name="datasource.driver.doctrine.field.subscriber" alias="twig" />
+        </service>
+    </services>
+
+</container>
