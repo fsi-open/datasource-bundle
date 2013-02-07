@@ -103,6 +103,9 @@
         </service>
 
         <!-- Symfony/FormExtension -->
+        <service id="datasource.subscriber.symfonyform" class="FSi\Component\DataSource\Extension\Symfony\Form\EventSubscriber\Events">
+            <tag name="datasource.subscriber" alias="symfonyform" />
+        </service>
         <service id="datasource.field.subscriber.symfonyform" class="FSi\Component\DataSource\Extension\Symfony\Form\Field\FormFieldExtension">
             <tag name="datasource.driver.doctrine.field.subscriber" alias="symfonyform" />
             <argument type="service" id="form.factory" />
