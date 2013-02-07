@@ -1,12 +1,6 @@
-{% block datasource_render_attributes %}
-{% for name, attribute in attributes %}
- {% spaceless %}{{ name }}="{{ attribute }}"{% endspaceless %}
-{% endfor %}
-{% endblock %}
-
 {% block datasource_filter %}
 {% spaceless %}
-    {% for field in fields %}
+    {% for field in datasource.fields %}
         {{ datasource_field_widget(field, vars) }}
     {% endfor %}
 {% endspaceless %}
@@ -14,9 +8,9 @@
 
 {% block datasource_field %}
 {% spaceless %}
-    {% if form is not empty %}
-        <div{{ datasource_render_attributes(filter_wrapper_attributes) }}>
-            {% for child in form.children %}
+    {% if field.hasAttribute('form') is not empty %}
+        <div>
+            {% for child in field.getAttribute('form').children %}
                 {% for subchild in child.children %}
                     {{ form_label(subchild) }}
                     {{ form_errors(subchild) }}
@@ -28,15 +22,24 @@
 {% endspaceless %}
 {% endblock %}
 
-{% block datasource_anchor %}
+{% block datasource_sort %}
 {% spaceless %}
-<a{% if attributes.href is not defined %} href="{{ url(route, additional_parameters|merge(parameters)) }}"{% endif %}{{ datasource_render_attributes(attributes) }}>{{ content|raw }}</a>
+    {% if (field.getAttribute('sorted_ascending')) %}
+    <span>{{ ascending|raw }}</span>
+    {% else %}
+    <a href="{{ ascending_url }}">{{ ascending|raw }}</a>
+    {% endif %}
+    {% if (field.getAttribute('sorted_descending')) %}
+    <span>{{ descending|raw }}</span>
+    {% else %}
+    <a href="{{ descending_url }}">{{ descending|raw }}</a>
+    {% endif %}
 {% endspaceless %}
 {% endblock %}
 
 {% block datasource_pagination %}
 {% spaceless %}
-<ul{{ datasource_render_attributes(wrapper_attributes) }}>
+<ul>
     <li{% if current == first %} class="{{ disabled_class }}"{% endif %}>
         <a href="{% if current != first %}{{ first_url }}{% else %}#{% endif %}">{{ 'datasource.pagination.first'|trans({}, translation_domain) }}</a>
     </li>

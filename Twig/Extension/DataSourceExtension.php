@@ -1,9 +1,19 @@
 <?php
 
+/*
+ * This file is part of the FSi Component package.
+ *
+ * (c) Lukasz Cybula <lukasz@fsi.pl>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace FSi\Bundle\DataSourceBundle\Twig\Extension;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use FSi\Bundle\DataSourceBundle\Twig\TokenParser\DataSourceThemeTokenParser;
 use FSi\Component\DataSource\DataSourceViewInterface;
 use FSi\Component\DataSource\Exception\DataSourceException;
 use FSi\Component\DataSource\Field\FieldViewInterface;
@@ -11,14 +21,29 @@ use FSi\Component\DataSource\Field\FieldViewInterface;
 class DataSourceExtension extends \Twig_Extension
 {
     /**
-     * @var ContainerInterace
+     * Default theme key in themes array.
      */
-    private $container;
+    const DEFAULT_THEME = 'default_theme';
+
+    /**
+     * @var array
+     */
+    private $themes;
+
+    /**
+     * @var array
+     */
+    private $themesVars;
 
     /**
      * @var Twig_TemplateInterface
      */
-    private $template;
+    private $baseTemplate;
+
+    /**
+     * @var ContainerInterace
+     */
+    private $container;
 
     /**
      * @var Twig_Environment
@@ -27,8 +52,10 @@ class DataSourceExtension extends \Twig_Extension
 
     public function __construct(ContainerInterface $container, $template)
     {
+        $this->themes = array();
+        $this->themesVars = array();
         $this->container = $container;
-        $this->template = $template;
+        $this->baseTemplate = $template;
     }
 
     public function getName()
@@ -39,100 +66,180 @@ class DataSourceExtension extends \Twig_Extension
     public function initRuntime(\Twig_Environment $environment)
     {
         $this->environment = $environment;
-        $this->template = $this->environment->loadTemplate($this->template);
+        $this->themes[self::DEFAULT_THEME] = $this->environment->loadTemplate($this->baseTemplate);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getFunctions()
     {
         return array(
             'datasource_filter_widget' => new \Twig_Function_Method($this, 'datasourceFilter', array('is_safe' => array('html'))),
             'datasource_field_widget' => new \Twig_Function_Method($this, 'datasourceField', array('is_safe' => array('html'))),
-            'datasource_sort_asc_url' =>  new \Twig_Function_Method($this, 'datasourceSortAscendingUrl', array('is_safe' => array('html'))),
-            'datasource_sort_desc_url' =>  new \Twig_Function_Method($this, 'datasourceSortDescendingUrl', array('is_safe' => array('html'))),
+            'datasource_sort_widget' => new \Twig_Function_Method($this, 'datasourceSort', array('is_safe' => array('html'))),
             'datasource_pagination_widget' =>  new \Twig_Function_Method($this, 'datasourcePagination', array('is_safe' => array('html'))),
-            'datasource_anchor' =>  new \Twig_Function_Method($this, 'datasourceAnchor', array('is_safe' => array('html'))),
-            'datasource_render_attributes' =>  new \Twig_Function_Method($this, 'datasourceAttributes', array('is_safe' => array('html'))),
         );
     }
 
-    public function datasourceFilter(DataSourceViewInterface $view, array $exclude = array(), array $vars = array())
+    /**
+     * {@inheritDoc}
+     */
+    public function getTokenParsers()
     {
-        $fields = array();
-        foreach ($view as $fieldView) {
-            if (!in_array($fieldView->getName(), $exclude)) {
-                $fields[$fieldView->getName()] = $fieldView;
+        return array(
+            new DataSourceThemeTokenParser(),
+        );
+    }
+
+    /**
+     * Set theme for specific DataSource.
+     * Theme is nothing more than twig template that contains some or all of blocks required to render DataSource.
+     *
+     * @param DataSourceViewInterface $dataSource
+     * @param $theme
+     * @param array $vars
+     */
+    public function setTheme(DataSourceViewInterface $dataSource, $theme, array $vars = array())
+    {
+        $this->themes[$dataSource->getName()] = ($theme instanceof \Twig_TemplateInterface)
+            ? $theme
+            : $this->environment->loadTemplate($theme);
+        $this->themesVars[$dataSource->getName()] = $vars;
+    }
+
+    public function datasourceFilter(DataSourceViewInterface $view, array $vars = array())
+    {
+        $templates = $this->getTemplates($view);
+        $blockNames = array(
+            'datasource_' . $view->getName() . '_filter',
+            'datasource_filter',
+        );
+
+        ob_start();
+
+        foreach ($blockNames as $blockName) {
+            foreach ($templates as $template) {
+                if ($template->hasBlock($blockName)) {
+                    $template->displayBlock($blockName, array(
+                        'datasource' => $view,
+                        'vars' => array_merge(
+                            $this->getVars($view),
+                            $vars
+                        )
+                    ));
+
+                    return ob_get_clean();
+                }
             }
         }
 
-        return $this->template->renderBlock('datasource_filter', array(
-            'datasource' => $view,
-            'fields' => $fields,
-            'vars' => $vars
-        ));
+        return ob_get_clean();
     }
 
     public function datasourceField(FieldViewInterface $fieldView, array $vars = array())
     {
-        $filter_wrapper_attributes = $fieldView->getAttribute('filter_wrapper_attributes');
+        $dataSourceView = $fieldView->getDataSourceView();
+        $templates = $this->getTemplates($dataSourceView);
+        $blockNames = array(
+            'datasource_' . $dataSourceView->getName() . '_field_name_' . $fieldView->getName(),
+            'datasource_' . $dataSourceView->getName() . '_field_type_' . $fieldView->getType(),
+            'datasource_field_name_' . $fieldView->getName(),
+            'datasource_field_type_' . $fieldView->getType(),
+            'datasource_' . $dataSourceView->getName() . '_field',
+            'datasource_field',
+        );
 
-        return $this->template->renderBlock('datasource_field', array(
-            'form' => $fieldView->getAttribute('form'),
-            'filter_wrapper_attributes' => $filter_wrapper_attributes,
-            'vars' => $vars
-        ));
-    }
+        ob_start();
 
-    public function datasourceSortAscendingUrl(FieldViewInterface $fieldView, $route = null, array $additionalParameters = array())
-    {
-        if ($fieldView->hasAttribute('parameters_sort_ascending')) {
-            $router = $this->container->get('router');
-            return $router->generate(
-                isset($route)?$route:$this->getCurrentRoute(),
-                array_merge($additionalParameters, $fieldView->getAttribute('parameters_sort_ascending'))
-            );
-        } else {
-            throw new DataSourceException(sprintf("DataSource's field %s is not sortable", $fieldView->getName()));
+        foreach ($blockNames as $blockName) {
+            foreach ($templates as $template) {
+                if ($template->hasBlock($blockName)) {
+                    $template->displayBlock($blockName, array(
+                        'field' => $fieldView,
+                        'vars' => array_merge(
+                            $this->getVars($fieldView->getDataSourceView()),
+                            $vars
+                        )
+                    ));
+
+                    return ob_get_clean();
+                }
+            }
         }
+
+        return ob_get_clean();
     }
 
-    public function datasourceSortDescendingUrl(FieldViewInterface $fieldView, $route = null, array $additionalParameters = array())
-    {
-        if ($fieldView->getAttribute('parameters_sort_descending')) {
-            $router = $this->container->get('router');
-            return $router->generate(
-                isset($route)?$route:$this->getCurrentRoute(),
-                array_merge($additionalParameters, $fieldView->getAttribute('parameters_sort_descending'))
-            );
-        } else {
-            throw new DataSourceException(sprintf("DataSource's field %s is not sortable", $fieldView->getName()));
-        }
-    }
-
-    private function validateAnchorOptions(array $options)
+    private function validateSortOptions(array $options)
     {
         $optionsResolver = new OptionsResolver();
         $optionsResolver
-            ->setOptional(array('route', 'active_class', 'href'))
-            ->setDefaults(array(
+        ->setDefaults(array(
                 'route' => $this->getCurrentRoute(),
                 'additional_parameters' => array(),
-                'attributes' => array(),
-                'wrapper_attributes' => array(),
-                'content' => ''
-            ))
-            ->setAllowedTypes(array(
-                'href' => 'string',
+                'ascending' => '&uarr;',
+                'descending' => '&darr;',
+        ))
+        ->setAllowedTypes(array(
                 'route' => 'string',
                 'additional_parameters' => 'array',
-                'attributes' => 'array',
-                'wrapper_attributes' => 'array',
-                'active_class' => 'string',
-                'content' => 'string'
-            ));
-        return $optionsResolver->resolve($options);
+                'ascending' => 'string',
+                'descending' => 'string',
+        ));
+        $options = $optionsResolver->resolve($options);
+        return $options;
     }
 
-    private function validateOptions(array $options)
+    public function datasourceSort(FieldViewInterface $fieldView, array $options = array(), array $vars = array())
+    {
+        if (!$fieldView->getAttribute('sortable'))
+            return;
+
+
+        $dataSourceView = $fieldView->getDataSourceView();
+        $templates = $this->getTemplates($dataSourceView);
+        $blockNames = array(
+            'datasource_' . $dataSourceView->getName() . '_sort',
+            'datasource_sort',
+        );
+
+        $options = $this->validateSortOptions($options);
+        $ascendingUrl = $this->container->get('router')->generate(
+            $options['route'],
+            array_merge($options['additional_parameters'], $fieldView->getAttribute('parameters_sort_ascending'))
+        );
+        $descendingUrl = $this->container->get('router')->generate(
+            $options['route'],
+            array_merge($options['additional_parameters'], $fieldView->getAttribute('parameters_sort_descending'))
+        );
+
+        ob_start();
+
+        foreach ($blockNames as $blockName) {
+            foreach ($templates as $template) {
+                if ($template->hasBlock($blockName)) {
+                    $template->displayBlock($blockName, array(
+                        'field' => $fieldView,
+                        'ascending_url' => $ascendingUrl,
+                        'descending_url' => $descendingUrl,
+                        'ascending' => $options['ascending'],
+                        'descending' => $options['descending'],
+                        'vars' => array_merge(
+                            $this->getVars($fieldView->getDataSourceView()),
+                            $vars
+                        )
+                    ));
+
+                    return ob_get_clean();
+                }
+            }
+        }
+
+        return ob_get_clean();
+    }
+
+    private function validatePaginationOptions(array $options)
     {
         $optionsResolver = new OptionsResolver();
         $optionsResolver
@@ -140,7 +247,6 @@ class DataSourceExtension extends \Twig_Extension
             ->setDefaults(array(
                 'route' => $this->getCurrentRoute(),
                 'additional_parameters' => array(),
-                'wrapper_attributes' => array(),
                 'active_class' => 'active',
                 'disabled_class' => 'disabled',
                 'translation_domain' => 'DataSourceBundle'
@@ -149,7 +255,6 @@ class DataSourceExtension extends \Twig_Extension
                 'route' => 'string',
                 'additional_parameters' => 'array',
                 'max_pages' => 'int',
-                'wrapper_attributes' => 'array',
                 'active_class' => 'string',
                 'disabled_class' => 'string',
                 'translation_domain' => 'string'
@@ -158,9 +263,15 @@ class DataSourceExtension extends \Twig_Extension
         return $options;
     }
 
-    public function datasourcePagination(DataSourceViewInterface $view, $options = array())
+    public function datasourcePagination(DataSourceViewInterface $view, $options = array(), $vars = array())
     {
-        $options = $this->validateOptions($options);
+        $templates = $this->getTemplates($view);
+        $blockNames = array(
+            'datasource_' . $view->getName() . '_pagination',
+            'datasource_pagination',
+        );
+
+        $options = $this->validatePaginationOptions($options);
         $router = $this->container->get('router');
 
         $pagesParams = $view->getAttribute('parameters_pages');
@@ -192,7 +303,7 @@ class DataSourceExtension extends \Twig_Extension
         }
 
         $viewData = array(
-            'wrapper_attributes' => $options['wrapper_attributes'],
+            'datasource' => $view,
             'page_anchors' => $pagesAnchors,
             'pages_urls' => $pagesUrls,
             'first' => 1,
@@ -202,7 +313,8 @@ class DataSourceExtension extends \Twig_Extension
             'current' => $current,
             'active_class' => $options['active_class'],
             'disabled_class' => $options['disabled_class'],
-            'translation_domain' => $options['translation_domain']
+            'translation_domain' => $options['translation_domain'],
+            'vars' => array_merge($this->getVars($view), $vars),
         );
         if ($current != 1) {
             $viewData['prev'] = $current - 1;
@@ -213,19 +325,19 @@ class DataSourceExtension extends \Twig_Extension
             $viewData['next_url'] = $router->generate($options['route'], array_merge($options['additional_parameters'], $pagesParams[$current + 1]));
         }
 
-        return $this->template->renderBlock('datasource_pagination', $viewData);
-    }
+        ob_start();
 
-    public function datasourceAnchor($options = array())
-    {
-        return $this->template->renderBlock('datasource_anchor', $options);
-    }
+        foreach ($blockNames as $blockName) {
+            foreach ($templates as $template) {
+                if ($template->hasBlock($blockName)) {
+                    $template->displayBlock($blockName, $viewData);
 
-    public function datasourceAttributes(array $attributes)
-    {
-        return $this->template->renderBlock('datasource_render_attributes', array(
-            'attributes' => $attributes,
-        ));
+                    return ob_get_clean();
+                }
+            }
+        }
+
+        return ob_get_clean();
     }
 
     private function getCurrentRoute()
@@ -234,5 +346,40 @@ class DataSourceExtension extends \Twig_Extension
         $request = $this->container->get('request');
         $parameters = $router->match($request->getPathInfo());
         return $parameters['_route'];
+    }
+
+    /**
+     * Return list of templates that might be useful to render DataSourceView.
+     * Always the last template will be default one.
+     *
+     * @param DataSourceViewInterface $dataSource
+     * @return array
+     */
+    private function getTemplates(DataSourceViewInterface $dataSource)
+    {
+        $templates = array();
+
+        if (isset($this->themes[$dataSource->getName()])) {
+            $templates[] = $this->themes[$dataSource->getName()];
+        }
+
+        $templates[] = $this->themes[self::DEFAULT_THEME];
+
+        return $templates;
+    }
+
+    /**
+     * Return vars passed to theme. Those vars will be added to block context.
+     *
+     * @param DataSourceViewInterface $dataSource
+     * @return array
+     */
+    private function getVars(DataSourceViewInterface $dataSource)
+    {
+        if (isset($this->themesVars[$dataSource->getName()])) {
+            return $this->themesVars[$dataSource->getName()];
+        }
+
+        return array();
     }
 }
