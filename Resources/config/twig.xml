@@ -13,14 +13,6 @@
             <argument type="service" id="service_container" />
             <argument>%datasource.twig.template%</argument>
         </service>
-
-        <service id="datasource.subscriber.twig" class="FSi\Bundle\DataSourceBundle\DataSource\Extension\Twig\TwigExtension">
-            <tag name="datasource.subscriber" alias="twig" />
-        </service>
-
-        <service id="datasource.field.subscriber.twig" class="FSi\Bundle\DataSourceBundle\DataSource\Extension\Twig\Field\TwigFieldExtension">
-            <tag name="datasource.driver.doctrine.field.subscriber" alias="twig" />
-        </service>
     </services>
 
 </container>
