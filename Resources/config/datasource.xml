@@ -7,6 +7,7 @@
     <parameters>
         <parameter key="datasource.factory.class">FSi\Component\DataSource\DataSourceFactory</parameter>
         <parameter key="datasource.extension.class">FSi\Component\DataSource\Extension\Symfony\DependencyInjection\DependencyInjectionExtension</parameter>
+        <parameter key="datasource.driver.factory.manager.class">FSi\Component\DataSource\Driver\DriverFactoryManager</parameter>
         <parameter key="datasource.driver.extension.class">FSi\Component\DataSource\Extension\Symfony\DependencyInjection\Driver\DriverExtension</parameter>
         <parameter key="datasource.driver.doctrine.factory.class">FSi\Component\DataSource\Driver\Doctrine\DoctrineFactory</parameter>
         <parameter key="datasource.driver.collection.factory.class">FSi\Component\DataSource\Driver\Collection\CollectionFactory</parameter>
@@ -29,7 +30,6 @@
         <!-- DoctrineFactory -->
         <service id="datasource.driver.doctrine.factory" class="%datasource.driver.doctrine.factory.class%">
             <argument type="service" id="doctrine" />
-            <argument type="service" id="datasource.factory" />
             <argument type="collection">
                 <!--
                 We don't need to be able to add more extensions.
@@ -76,7 +76,6 @@
 
         <!-- CollectionFactory -->
         <service id="datasource.driver.collection.factory" class="%datasource.driver.collection.factory.class%">
-            <argument type="service" id="datasource.factory" />
             <argument type="collection">
                 <!--
                 We don't need to be able to add more extensions.
@@ -114,8 +113,17 @@
             <argument type="collection" />
         </service>
 
+        <!-- DriverFactoryManager -->
+        <service id="datasource.driver.factory.manager" class="%datasource.driver.factory.manager.class%">
+            <argument type="collection">
+                <argument type="service" id="datasource.driver.doctrine.factory" />
+                <argument type="service" id="datasource.driver.collection.factory" />
+            </argument>
+        </service>
+
         <!-- DataSourceFactory -->
         <service id="datasource.factory" class="%datasource.factory.class%">
+            <argument type="service" id="datasource.driver.factory.manager"></argument>
             <argument type="collection">
                 <!--
                 We don't need to be able to add more extensions.
