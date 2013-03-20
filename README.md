@@ -16,7 +16,7 @@ Add to composer.json
 ```
 
 "require": {
-    "fsi/datasource-bundle": "0.9.*"
+    "fsi/datasource-bundle": "1.0.*"
 }
 
 ```
@@ -163,8 +163,8 @@ It renders anchors for sorting datasource's result by specified field.
 This function renders pagination control for specified datasource using ``datasource_pagination`` twig block which could
 be overloaded in user bundle. It can take following options:
 
-* ``view`` (**required**) - Instance of DataSourceViewInterface to render paginatior widget for.
-* ``options`` (**optional**) - Array of one or more of the following options.
+* ``view`` **(required)** - Instance of DataSourceViewInterface to render paginatior widget for.
+* ``options`` **(optional)** - Array of one or more of the following options.
     * ``max_pages`` - Maximum number of pages that can be rendered at once not including first, previous, next and last pages
     * ``wrapper_attributes`` - Array of attributes that will be added to the ``<ul>`` tag wrapping the pagination widget
     * ``route`` - Route which will be used to generate all URLs. If not specified then currently active route will be used
