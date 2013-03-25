@@ -60,6 +60,10 @@
         <service id="datasource.driver.doctrine.field.time" class="FSi\Component\DataSource\Driver\Doctrine\Extension\Core\Field\Time">
             <tag name="datasource.driver.doctrine.field" alias="time" />
         </service>
+        <service id="datasource.driver.doctrine.subscriber.result_indexer" class="FSi\Component\DataSource\Driver\Doctrine\Extension\Core\EventSubscriber\ResultIndexer">
+            <tag name="datasource.driver.doctrine.subscriber" alias="result_indexer" />
+            <argument type="service" id="doctrine" />
+        </service>
 
         <!-- Collection extensions -->
         <service id="datasource.driver.collection.extension" class="%datasource.driver.extension.class%">
