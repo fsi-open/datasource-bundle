@@ -361,6 +361,7 @@ class DataSourceExtension extends \Twig_Extension
                 'route' => 'string',
                 'active_class' => 'string',
                 'additional_parameters' => 'array',
+                'results' => 'array'
             ));
 
         $options = $optionsResolver->resolve($options);
