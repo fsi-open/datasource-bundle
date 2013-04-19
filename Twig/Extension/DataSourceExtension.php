@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use FSi\Bundle\DataSourceBundle\Twig\TokenParser\DataSourceThemeTokenParser;
 use FSi\Component\DataSource\DataSourceViewInterface;
-use FSi\Component\DataSource\Exception\DataSourceException;
+use FSi\Component\DataSource\Extension\Core\Pagination\PaginationExtension;
 use FSi\Component\DataSource\Field\FieldViewInterface;
 
 class DataSourceExtension extends \Twig_Extension
@@ -79,7 +79,7 @@ class DataSourceExtension extends \Twig_Extension
             'datasource_field_widget' => new \Twig_Function_Method($this, 'datasourceField', array('is_safe' => array('html'))),
             'datasource_sort_widget' => new \Twig_Function_Method($this, 'datasourceSort', array('is_safe' => array('html'))),
             'datasource_pagination_widget' =>  new \Twig_Function_Method($this, 'datasourcePagination', array('is_safe' => array('html'))),
-            'datasource_results_per_page_widget' =>  new \Twig_Function_Method($this, 'datasourceResultsPerPage', array('is_safe' => array('html'))),
+            'datasource_max_results_widget' =>  new \Twig_Function_Method($this, 'datasourceMaxResults', array('is_safe' => array('html'))),
         );
     }
 
@@ -347,7 +347,7 @@ class DataSourceExtension extends \Twig_Extension
      * @param array $options
      * @return array
      */
-    private function validateResultsPerPageOptions(array $options)
+    private function validateMaxResultsOptions(array $options)
     {
         $optionsResolver = new OptionsResolver();
         $optionsResolver
@@ -368,14 +368,14 @@ class DataSourceExtension extends \Twig_Extension
         return $options;
     }
 
-    public function datasourceResultsPerPage(DataSourceViewInterface $view, $options = array(), $vars = array())
+    public function datasourceMaxResults(DataSourceViewInterface $view, $options = array(), $vars = array())
     {
-        $options = $this->validateResultsPerPageOptions($options);
+        $options = $this->validateMaxResultsOptions($options);
         $templates = $this->getTemplates($view);
         $router = $this->container->get('router');
         $blockNames = array(
-            'datasource_' . $view->getName() . '_results_per_page',
-            'datasource_results_per_page',
+            'datasource_' . $view->getName() . '_max_results',
+            'datasource_max_results',
         );
 
         $baseParameters = $view->getAllParameters();
@@ -385,7 +385,7 @@ class DataSourceExtension extends \Twig_Extension
 
         $results = array();
         foreach ($options['results'] as $resultsPerPage) {
-            $baseParameters[$view->getName()]['results_per_page'] = $resultsPerPage;
+            $baseParameters[$view->getName()][PaginationExtension::PARAMETER_MAX_RESULTS] = $resultsPerPage;
             $results[$resultsPerPage] = $router->generate($options['route'], array_merge( $options['additional_parameters'], $baseParameters));
         }
 

@@ -61,7 +61,7 @@
 {% endspaceless %}
 {% endblock %}
 
-{% block datasource_results_per_page %}
+{% block datasource_max_results_widget %}
     {% for result_num, result_url in results %}
         <a href="{{ result_url }}"{% if max_results == result_num %} class="{{ active_class }}"{% endif %}>{{ result_num }}</a>
     {% endfor %}
