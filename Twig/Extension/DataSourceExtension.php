@@ -79,6 +79,7 @@ class DataSourceExtension extends \Twig_Extension
             'datasource_field_widget' => new \Twig_Function_Method($this, 'datasourceField', array('is_safe' => array('html'))),
             'datasource_sort_widget' => new \Twig_Function_Method($this, 'datasourceSort', array('is_safe' => array('html'))),
             'datasource_pagination_widget' =>  new \Twig_Function_Method($this, 'datasourcePagination', array('is_safe' => array('html'))),
+            'datasource_results_per_page_widget' =>  new \Twig_Function_Method($this, 'datasourceResultsPerPage', array('is_safe' => array('html'))),
         );
     }
 
@@ -324,6 +325,77 @@ class DataSourceExtension extends \Twig_Extension
             $viewData['next'] = $current + 1;
             $viewData['next_url'] = $router->generate($options['route'], array_merge($options['additional_parameters'], $pagesParams[$current + 1]));
         }
+
+        ob_start();
+
+        foreach ($blockNames as $blockName) {
+            foreach ($templates as $template) {
+                if ($template->hasBlock($blockName)) {
+                    $template->displayBlock($blockName, $viewData);
+
+                    return ob_get_clean();
+                }
+            }
+        }
+
+        return ob_get_clean();
+    }
+
+    /**
+     * Validate and resolve options passed in Twig to datasource_results_per_page_widget
+     *
+     * @param array $options
+     * @return array
+     */
+    private function validateResultsPerPageOptions(array $options)
+    {
+        $optionsResolver = new OptionsResolver();
+        $optionsResolver
+            ->setDefaults(array(
+                'route' => $this->getCurrentRoute(),
+                'active_class' => 'active',
+                'additional_parameters' => array(),
+                'results' => array(5, 10, 20, 50, 100)
+            ))
+            ->setAllowedTypes(array(
+                'route' => 'string',
+                'active_class' => 'string',
+                'additional_parameters' => 'array',
+            ));
+
+        $options = $optionsResolver->resolve($options);
+
+        return $options;
+    }
+
+    public function datasourceResultsPerPage(DataSourceViewInterface $view, $options = array(), $vars = array())
+    {
+        $options = $this->validateResultsPerPageOptions($options);
+        $templates = $this->getTemplates($view);
+        $router = $this->container->get('router');
+        $blockNames = array(
+            'datasource_' . $view->getName() . '_results_per_page',
+            'datasource_results_per_page',
+        );
+
+        $baseParameters = $view->getAllParameters();
+        if (!isset($baseParameters[$view->getName()])) {
+            $baseParameters[$view->getName()] = array();
+        }
+
+        $results = array();
+        foreach ($options['results'] as $resultsPerPage) {
+            $baseParameters[$view->getName()]['results_per_page'] = $resultsPerPage;
+            $results[$resultsPerPage] = $router->generate($options['route'], array_merge( $options['additional_parameters'], $baseParameters));
+        }
+
+        $viewData = array(
+            'datasource' => $view,
+            'results' => $results,
+            'active_class' => $options['active_class'],
+            'max_results' => $view->getAttribute('max_results'),
+            'vars' => array_merge($this->getVars($view), $vars),
+        );
 
         ob_start();
 
