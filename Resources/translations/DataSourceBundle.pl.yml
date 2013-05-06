@@ -4,3 +4,6 @@ datasource:
         prev: "poprzedna"
         next: "następna"
         last: "ostatnia"
+    form:
+        isnull: "puste"
+        isnotnull: "niepuste"
