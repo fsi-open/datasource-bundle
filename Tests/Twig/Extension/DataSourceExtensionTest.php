@@ -18,7 +18,7 @@ use Symfony\Bridge\Twig\Extension\TranslationExtension;
 use Symfony\Bridge\Twig\Tests\Extension\Fixtures\StubTranslator;
 
 /**
- * @author Norbert Orzechowicz <norbert@fsi.pl>
+ * @author Stanislav Prokopov <stanislav.prokopov@gmail.com>
  */
 class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
 {
