@@ -111,37 +111,25 @@ class DataSourceExtension extends \Twig_Extension
 
     public function datasourceFilter(DataSourceViewInterface $view, array $vars = array())
     {
-        $templates = $this->getTemplates($view);
         $blockNames = array(
             'datasource_' . $view->getName() . '_filter',
             'datasource_filter',
         );
 
-        ob_start();
+        $viewData = array(
+            'datasource' => $view,
+            'vars' => array_merge(
+                $this->getVars($view),
+                $vars
+            )
+        );
 
-        foreach ($blockNames as $blockName) {
-            foreach ($templates as $template) {
-                if ($template->hasBlock($blockName)) {
-                    $template->displayBlock($blockName, array(
-                        'datasource' => $view,
-                        'vars' => array_merge(
-                            $this->getVars($view),
-                            $vars
-                        )
-                    ));
-
-                    return ob_get_clean();
-                }
-            }
-        }
-
-        return ob_get_clean();
+        return $this->renderTheme($view, $viewData, $blockNames);
     }
 
     public function datasourceField(FieldViewInterface $fieldView, array $vars = array())
     {
         $dataSourceView = $fieldView->getDataSourceView();
-        $templates = $this->getTemplates($dataSourceView);
         $blockNames = array(
             'datasource_' . $dataSourceView->getName() . '_field_name_' . $fieldView->getName(),
             'datasource_' . $dataSourceView->getName() . '_field_type_' . $fieldView->getType(),
@@ -151,25 +139,15 @@ class DataSourceExtension extends \Twig_Extension
             'datasource_field',
         );
 
-        ob_start();
+        $viewData = array(
+            'field' => $fieldView,
+            'vars' => array_merge(
+                $this->getVars($fieldView->getDataSourceView()),
+                $vars
+            )
+        );
 
-        foreach ($blockNames as $blockName) {
-            foreach ($templates as $template) {
-                if ($template->hasBlock($blockName)) {
-                    $template->displayBlock($blockName, array(
-                        'field' => $fieldView,
-                        'vars' => array_merge(
-                            $this->getVars($fieldView->getDataSourceView()),
-                            $vars
-                        )
-                    ));
-
-                    return ob_get_clean();
-                }
-            }
-        }
-
-        return ob_get_clean();
+        return $this->renderTheme($dataSourceView, $viewData, $blockNames);
     }
 
     private function validateSortOptions(array $options)
@@ -197,9 +175,7 @@ class DataSourceExtension extends \Twig_Extension
         if (!$fieldView->getAttribute('sortable'))
             return;
 
-
         $dataSourceView = $fieldView->getDataSourceView();
-        $templates = $this->getTemplates($dataSourceView);
         $blockNames = array(
             'datasource_' . $dataSourceView->getName() . '_sort',
             'datasource_sort',
@@ -215,29 +191,19 @@ class DataSourceExtension extends \Twig_Extension
             array_merge($options['additional_parameters'], $fieldView->getAttribute('parameters_sort_descending'))
         );
 
-        ob_start();
+        $viewData = array(
+            'field' => $fieldView,
+            'ascending_url' => $ascendingUrl,
+            'descending_url' => $descendingUrl,
+            'ascending' => $options['ascending'],
+            'descending' => $options['descending'],
+            'vars' => array_merge(
+                $this->getVars($fieldView->getDataSourceView()),
+                $vars
+            )
+        );
 
-        foreach ($blockNames as $blockName) {
-            foreach ($templates as $template) {
-                if ($template->hasBlock($blockName)) {
-                    $template->displayBlock($blockName, array(
-                        'field' => $fieldView,
-                        'ascending_url' => $ascendingUrl,
-                        'descending_url' => $descendingUrl,
-                        'ascending' => $options['ascending'],
-                        'descending' => $options['descending'],
-                        'vars' => array_merge(
-                            $this->getVars($fieldView->getDataSourceView()),
-                            $vars
-                        )
-                    ));
-
-                    return ob_get_clean();
-                }
-            }
-        }
-
-        return ob_get_clean();
+        return $this->renderTheme($dataSourceView, $viewData, $blockNames);
     }
 
     private function validatePaginationOptions(array $options)
@@ -266,7 +232,6 @@ class DataSourceExtension extends \Twig_Extension
 
     public function datasourcePagination(DataSourceViewInterface $view, $options = array(), $vars = array())
     {
-        $templates = $this->getTemplates($view);
         $blockNames = array(
             'datasource_' . $view->getName() . '_pagination',
             'datasource_pagination',
@@ -326,19 +291,7 @@ class DataSourceExtension extends \Twig_Extension
             $viewData['next_url'] = $router->generate($options['route'], array_merge($options['additional_parameters'], $pagesParams[$current + 1]));
         }
 
-        ob_start();
-
-        foreach ($blockNames as $blockName) {
-            foreach ($templates as $template) {
-                if ($template->hasBlock($blockName)) {
-                    $template->displayBlock($blockName, $viewData);
-
-                    return ob_get_clean();
-                }
-            }
-        }
-
-        return ob_get_clean();
+        return $this->renderTheme($view, $viewData, $blockNames);
     }
 
     /**
@@ -372,7 +325,6 @@ class DataSourceExtension extends \Twig_Extension
     public function datasourceMaxResults(DataSourceViewInterface $view, $options = array(), $vars = array())
     {
         $options = $this->validateMaxResultsOptions($options);
-        $templates = $this->getTemplates($view);
         $router = $this->container->get('router');
         $blockNames = array(
             'datasource_' . $view->getName() . '_max_results',
@@ -398,19 +350,7 @@ class DataSourceExtension extends \Twig_Extension
             'vars' => array_merge($this->getVars($view), $vars),
         );
 
-        ob_start();
-
-        foreach ($blockNames as $blockName) {
-            foreach ($templates as $template) {
-                if ($template->hasBlock($blockName)) {
-                    $template->displayBlock($blockName, $viewData);
-
-                    return ob_get_clean();
-                }
-            }
-        }
-
-        return ob_get_clean();
+        return $this->renderTheme($view, $viewData, $blockNames);
     }
 
     private function getCurrentRoute()
@@ -454,5 +394,49 @@ class DataSourceExtension extends \Twig_Extension
         }
 
         return array();
+    }
+
+    /**
+     * @param DataSourceViewInterface $view
+     * @param array $contextVars
+     * @param $availableBlocks
+     * @return string
+     */
+    private function renderTheme(DataSourceViewInterface $view, array $contextVars = array(), $availableBlocks = array())
+    {
+        $templates = $this->getTemplates($view);
+
+        ob_start();
+
+        foreach ($availableBlocks as $blockName) {
+            foreach ($templates as $template) {
+                if (false !== ($template = $this->findTemplateWithBlock($template, $blockName))) {
+                    $template->displayBlock($blockName, $contextVars);
+
+                    return ob_get_clean();
+                }
+            }
+        }
+
+        return ob_get_clean();
+    }
+
+    /**
+     * @param \Twig_TemplateInterface $template
+     * @param string $blockName
+     * @return \Twig_TemplateInterface|bool
+     */
+    private function findTemplateWithBlock(\Twig_TemplateInterface $template, $blockName)
+    {
+        if ($template->hasBlock($blockName)) {
+            return $template;
+        }
+
+        // Check parents
+        if (false !== ($parent = $template->getParent(array()))) {
+            return $this->findTemplateWithBlock($parent, $blockName);
+        }
+
+        return false;
     }
 }
