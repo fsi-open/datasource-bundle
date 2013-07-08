@@ -19,8 +19,8 @@ class FormFieldExtensionTest extends \PHPUnit_Framework_TestCase
         $optionResolver->expects($this->once())
             ->method('setDefaults')
             ->with(array(
-                'form_null_value' => 'datasource.form.choices.isnull',
-                'form_not_null_value' => 'datasource.form.choices.isnotnull'
+                'form_null_value' => 'datasource.form.choices.is_null',
+                'form_not_null_value' => 'datasource.form.choices.is_not_null'
             ));
 
         $fieldType = $this->getMock('FSi\Component\DataSource\Field\FieldTypeInterface');
