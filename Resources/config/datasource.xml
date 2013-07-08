@@ -172,6 +172,10 @@
             <tag name="datasource.driver.collection.field.subscriber" alias="symfonyform" />
             <argument type="service" id="form.factory" />
         </service>
+        <service id="datasource.field.subscriber.symfony_null_form" class="FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Field\FormFieldExtension">
+            <tag name="datasource.driver.doctrine.field.subscriber" alias="symfony_null_form" />
+            <tag name="datasource.driver.collection.field.subscriber" alias="symfony_null_form" />
+        </service>
 
     </services>
 </container>

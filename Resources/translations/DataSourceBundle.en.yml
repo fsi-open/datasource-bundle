@@ -6,5 +6,7 @@ datasource:
         last: "last"
     form:
         choices:
-            isnull: "empty"
-            isnotnull: "not empty"
+            isnull: "empty" # deprecated since v1.0.6, will be removed in v1.2
+            isnotnull: "not empty" # deprecated since v1.0.6, will be removed in v1.2
+            is_null: "empty"
+            is_not_null: "not empty"
