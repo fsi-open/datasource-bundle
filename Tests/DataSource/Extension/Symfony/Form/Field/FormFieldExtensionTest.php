@@ -20,7 +20,8 @@ class FormFieldExtensionTest extends \PHPUnit_Framework_TestCase
             ->method('setDefaults')
             ->with(array(
                 'form_null_value' => 'datasource.form.choices.is_null',
-                'form_not_null_value' => 'datasource.form.choices.is_not_null'
+                'form_not_null_value' => 'datasource.form.choices.is_not_null',
+                'form_translation_domain' => 'DataSourceBundle'
             ));
 
         $fieldType = $this->getMock('FSi\Component\DataSource\Field\FieldTypeInterface');
