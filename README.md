@@ -38,17 +38,6 @@ public function registerBundles()
 
 ```
 
-### Step3: Configure the DataSourceBundle in config.yaml ###
-
-Add to config.yaml 
-
-```
-    
-fsi_data_source: 
-    twig: ~
-
-```
-
 ## Usage ##
 
 ### Create DataSource in Controller ###
