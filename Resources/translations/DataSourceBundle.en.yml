@@ -10,3 +10,5 @@ datasource:
             isnotnull: "not empty" # deprecated since v1.0.6, will be removed in v1.2
             is_null: "empty"
             is_not_null: "not empty"
+            yes: "yes"
+            no: "no"
