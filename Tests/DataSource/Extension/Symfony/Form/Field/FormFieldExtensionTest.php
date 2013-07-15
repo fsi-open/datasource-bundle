@@ -21,6 +21,8 @@ class FormFieldExtensionTest extends \PHPUnit_Framework_TestCase
             ->with(array(
                 'form_null_value' => 'datasource.form.choices.is_null',
                 'form_not_null_value' => 'datasource.form.choices.is_not_null',
+                'form_true_value' => 'datasource.form.choices.yes',
+                'form_false_value' => 'datasource.form.choices.no',
                 'form_translation_domain' => 'DataSourceBundle'
             ));
 
@@ -32,7 +34,7 @@ class FormFieldExtensionTest extends \PHPUnit_Framework_TestCase
         $extension = new FormFieldExtension();
 
         $this->assertSame(
-            array('text', 'number', 'date', 'time', 'datetime', 'entity'),
+            array('text', 'number', 'date', 'time', 'datetime', 'entity', 'boolean'),
             $extension->getExtendedFieldTypes()
         );
 

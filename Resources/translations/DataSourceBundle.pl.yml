@@ -10,3 +10,5 @@ datasource:
             isnotnull: "niepuste" # deprecated since v1.0.6, will be removed in v1.2
             is_null: "puste"
             is_not_null: "niepuste"
+            yes: "tak"
+            no: "nie"
