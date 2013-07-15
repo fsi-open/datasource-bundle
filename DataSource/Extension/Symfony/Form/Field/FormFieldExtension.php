@@ -19,7 +19,7 @@ class FormFieldExtension extends FieldAbstractExtension
      */
     public function getExtendedFieldTypes()
     {
-        return array('text', 'number', 'date', 'time', 'datetime', 'entity');
+        return array('text', 'number', 'date', 'time', 'datetime', 'entity', 'boolean');
     }
 
     /**
@@ -31,6 +31,8 @@ class FormFieldExtension extends FieldAbstractExtension
             ->setDefaults(array(
                 'form_null_value' => 'datasource.form.choices.is_null',
                 'form_not_null_value' => 'datasource.form.choices.is_not_null',
+                'form_true_value' => 'datasource.form.choices.yes',
+                'form_false_value' => 'datasource.form.choices.no',
                 'form_translation_domain' => 'DataSourceBundle'
             ));
     }

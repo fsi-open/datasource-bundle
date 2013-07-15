@@ -60,6 +60,9 @@
         <service id="datasource.driver.doctrine.field.time" class="FSi\Component\DataSource\Driver\Doctrine\Extension\Core\Field\Time">
             <tag name="datasource.driver.doctrine.field" alias="time" />
         </service>
+        <service id="datasource.driver.doctrine.field.boolean" class="FSi\Component\DataSource\Driver\Doctrine\Extension\Core\Field\Boolean">
+            <tag name="datasource.driver.doctrine.field" alias="boolean" />
+        </service>
         <service id="datasource.driver.doctrine.subscriber.result_indexer" class="FSi\Component\DataSource\Driver\Doctrine\Extension\Core\EventSubscriber\ResultIndexer">
             <tag name="datasource.driver.doctrine.subscriber" alias="result_indexer" />
             <argument type="service" id="doctrine" />
@@ -106,6 +109,9 @@
         </service>
         <service id="datasource.driver.collection.field.time" class="FSi\Component\DataSource\Driver\Collection\Extension\Core\Field\Time">
             <tag name="datasource.driver.collection.field" alias="time" />
+        </service>
+        <service id="datasource.driver.collection.field.boolean" class="FSi\Component\DataSource\Driver\Collection\Extension\Core\Field\Boolean">
+            <tag name="datasource.driver.collection.field" alias="boolean" />
         </service>
 
         <!-- DataSource extensions -->
