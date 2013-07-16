@@ -14,11 +14,11 @@
         "php": ">=5.3.3",
         "twig/twig": "~1.2",
         "symfony/framework-bundle" : "~2.2",
-        "fsi/datasource": "1.0.*"
+        "fsi/datasource": "1.1.*"
     },
     "require-dev": {
-        "symfony/form" : "2.2.*",
-        "symfony/twig-bridge" : "2.2.*"
+        "symfony/form" : "~2.2",
+        "symfony/twig-bridge" : "~2.2"
     },
     "autoload": {
         "psr-0": { "FSi\\Bundle\\DataSourceBundle\\": "" }
@@ -26,7 +26,7 @@
     "target-dir" : "FSi/Bundle/DataSourceBundle",
     "extra": {
         "branch-alias": {
-            "dev-master": "1.1-dev"
+            "dev-master": "1.2-dev"
         }  
     }
 }
