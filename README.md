@@ -91,11 +91,11 @@ class DefaultController extends Controller
             ))
         ;
 
-        $dataSource->bindParameters($this->getRequest());
+        $datasource->bindParameters($this->getRequest());
 
         return array(
-            'datasource' => $dataSource->createView(),
-            'data' => $dataSource->getResult()
+            'datasource' => $datasource->createView(),
+            'data' => $datasource->getResult()
         );
     }
 }
