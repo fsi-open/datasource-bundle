@@ -9,9 +9,9 @@
 
 namespace FSi\Bundle\DataSourceBundle\Twig\TokenParser;
 
-use FSi\Bundle\DataSourceBundle\Twig\Node\DataSourceThemeNode;
+use FSi\Bundle\DataSourceBundle\Twig\Node\DataSourceRouteNode;
 
-class DataSourceThemeTokenParser extends \Twig_TokenParser
+class DataSourceRouteTokenParser extends \Twig_TokenParser
 {
     /**
      * {@inheritDoc}
@@ -20,20 +20,20 @@ class DataSourceThemeTokenParser extends \Twig_TokenParser
     {
         $stream = $this->parser->getStream();
         $dataSource = $this->parser->getExpressionParser()->parseExpression();
-        $theme = $this->parser->getExpressionParser()->parseExpression();
-        $vars = new \Twig_Node_Expression_Array(array(), $stream->getCurrent()->getLine());
+        $route = $this->parser->getExpressionParser()->parseExpression();
+        $additional_parameters = new \Twig_Node_Expression_Array(array(), $stream->getCurrent()->getLine());
 
         if ($this->parser->getStream()->test(\Twig_Token::NAME_TYPE, 'with')) {
             $this->parser->getStream()->next();
 
             if ($this->parser->getStream()->test(\Twig_Token::PUNCTUATION_TYPE)) {
-                $vars = $this->parser->getExpressionParser()->parseExpression();
+                $additional_parameters = $this->parser->getExpressionParser()->parseExpression();
             }
         }
 
         $stream->expect(\Twig_Token::BLOCK_END_TYPE);
 
-        return new DataSourceThemeNode($dataSource, $theme, $vars, $token->getLine(), $this->getTag());
+        return new DataSourceRouteNode($dataSource, $route, $additional_parameters, $token->getLine(), $this->getTag());
     }
 
     /**
@@ -41,7 +41,6 @@ class DataSourceThemeTokenParser extends \Twig_TokenParser
      */
     public function getTag()
     {
-        return 'datasource_theme';
+        return 'datasource_route';
     }
 }
-
