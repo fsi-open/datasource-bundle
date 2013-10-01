@@ -373,8 +373,13 @@ class DataSourceExtension extends \Twig_Extension
         if (isset($this->routes[$dataSource->getName()])) {
             return $this->routes[$dataSource->getName()];
         } else {
-            $router = $this->container->get('router');
             $request = $this->container->get('request');
+            if ($request->attributes->get('_route') === '_fragment') {
+                throw new \RuntimeException('Some datasource widget was called during Symfony internal request. You
+                    must use {% datasource_route %} twig tag to specify target route and/or additional parameters for
+                    this datasource\'s actions');
+            }
+            $router = $this->container->get('router');
             $parameters = $router->match($request->getPathInfo());
             return $parameters['_route'];
         }
@@ -428,8 +433,12 @@ class DataSourceExtension extends \Twig_Extension
         return $router->generate(
             $options['route'],
             array_merge(
-                isset($this->additional_parameters[$dataSource->getName()])?$this->additional_parameters[$dataSource->getName()]:array(),
-                isset($options['additional_parameters'])?$options['additional_parameters']:array(),
+                isset($this->additional_parameters[$dataSource->getName()])
+                    ? $this->additional_parameters[$dataSource->getName()]
+                    : array(),
+                isset($options['additional_parameters'])
+                    ? $options['additional_parameters']
+                    : array(),
                 $parameters
             )
         );
