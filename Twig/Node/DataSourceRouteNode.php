@@ -9,11 +9,11 @@
 
 namespace FSi\Bundle\DataSourceBundle\Twig\Node;
 
-class DataSourceThemeNode extends \Twig_Node
+class DataSourceRouteNode extends \Twig_Node
 {
-    public function __construct(\Twig_NodeInterface $dataGrid, \Twig_NodeInterface $theme, \Twig_Node_Expression_Array $vars, $lineno, $tag = null)
+    public function __construct(\Twig_NodeInterface $dataGrid, \Twig_NodeInterface $route, \Twig_Node_Expression_Array $additional_parameters, $lineno, $tag = null)
     {
-        parent::__construct(array('datasource' => $dataGrid, 'theme' => $theme, 'vars' => $vars), array(), $lineno, $tag);
+        parent::__construct(array('datasource' => $dataGrid, 'route' => $route, 'additional_parameters' => $additional_parameters), array(), $lineno, $tag);
     }
 
     /**
@@ -25,12 +25,12 @@ class DataSourceThemeNode extends \Twig_Node
     {
         $compiler
             ->addDebugInfo($this)
-            ->write('$this->env->getExtension(\'datasource\')->setTheme(')
+            ->write('$this->env->getExtension(\'datasource\')->setRoute(')
             ->subcompile($this->getNode('datasource'))
             ->raw(', ')
-            ->subcompile($this->getNode('theme'))
+            ->subcompile($this->getNode('route'))
             ->raw(', ')
-            ->subcompile($this->getNode('vars'))
+            ->subcompile($this->getNode('additional_parameters'))
             ->raw(");\n");
         ;
     }
