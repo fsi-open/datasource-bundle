@@ -8,7 +8,7 @@ Add to composer.json
 }
 ```
 
-### Enable the bundle
+## Enable the bundle
 ```
 <?php
 // app/AppKernel.php
