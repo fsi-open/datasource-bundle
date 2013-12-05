@@ -1,6 +1,6 @@
 # Basic DataSource usage
 
-## Configure DataGrid fields in .yml file
+## Configure DataSource fields in .yml file
 
 Configuration must be stored in .yml file with name equal to datasource name in
 ``src/<Bundle_Path>/Resources/config/datasource/<datasource_name>.yml``
