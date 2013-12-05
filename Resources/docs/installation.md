@@ -4,7 +4,7 @@
 Add to composer.json
 ```
 "require": {
-    "fsi/datasource-bundle": "1.0.*"
+    "fsi/datasource-bundle": "1.2.*"
 }
 ```
 
