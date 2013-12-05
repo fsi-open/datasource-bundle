@@ -1,4 +1,4 @@
-# Basic DataSource usage
+# Basic usage
 
 ## Configure DataSource in php code
 
