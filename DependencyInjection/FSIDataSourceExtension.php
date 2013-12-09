@@ -28,23 +28,14 @@ class FSIDataSourceExtension extends Extension
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('datasource.xml');
 
+        if (isset($config['yaml_configuration']) && $config['yaml_configuration']) {
+            $loader->load('datasource_yaml_configuration.xml');
+        }
+
         if(isset($config['twig']['enabled']) && $config['twig']['enabled']) {
             $this->registerTwigConfiguration($config['twig'], $container, $loader);
         }
-
-/*        if(isset($config['extension']['metadata']['enabled']) && $config['extension']['metadata']['enabled']) {
-            $this->registerMetadataExtensionConfiguration($config['extension']['metadata'], $container, $loader);
-        }*/
     }
-
-/*    public function registerMetadataExtensionConfiguration(array $config, ContainerBuilder $container, XmlFileLoader $loader)
-    {
-        $loader->load('datagrid_metadata_extension.xml');
-
-        if (isset($config['cache_service'])) {
-            $container->getDefinition('datagrid.metadata.factory')->addArgument(new Reference($config['cache_service']));;
-        }
-    }*/
 
     public function registerTwigConfiguration(array $config, ContainerBuilder $container, XmlFileLoader $loader)
     {
