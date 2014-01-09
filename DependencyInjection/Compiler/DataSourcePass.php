@@ -20,6 +20,15 @@ class DataSourcePass implements CompilerPassInterface
             return;
         }
 
+        $driverFactories = array();
+
+        foreach ($container->findTaggedServiceIds('datasource.driver.factory') as $serviceId => $tag) {
+            $driverFactories[] = $container->getDefinition($serviceId);
+        }
+
+        $container->getDefinition('datasource.driver.factory.manager')
+            ->replaceArgument(0, $driverFactories);
+
         $extensions = array();
 
         foreach ($container->findTaggedServiceIds('datasource.driver.extension') as $serviceId => $tag) {
