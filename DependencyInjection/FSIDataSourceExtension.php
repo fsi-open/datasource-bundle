@@ -28,6 +28,8 @@ class FSIDataSourceExtension extends Extension
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('datasource.xml');
 
+        $this->registerDrivers($loader);
+
         if (isset($config['yaml_configuration']) && $config['yaml_configuration']) {
             $loader->load('datasource_yaml_configuration.xml');
         }
@@ -41,5 +43,18 @@ class FSIDataSourceExtension extends Extension
     {
         $loader->load('twig.xml');
         $container->setParameter('datasource.twig.template', $config['template']);
+    }
+
+    /**
+     * @param $loader
+     */
+    private function registerDrivers($loader)
+    {
+        $loader->load('driver/collection.xml');
+        /* doctrine driver is deprecated since version 1.4 */
+        $loader->load('driver/doctrine.xml');
+        if (class_exists('FSi\Component\DataSource\Driver\Doctrine\ORM\DoctrineDriver')) {
+            $loader->load('driver/doctrine-orm.xml');
+        }
     }
 }
