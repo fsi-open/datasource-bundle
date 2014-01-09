@@ -58,7 +58,7 @@ class DefaultController extends Controller
         $driverOptions = array(
             'entity' => 'FSiDemoBundle:News'
         );
-        $datasource = $factory->createDataSource('doctrine',  $driverOptions, 'datasource_name');
+        $datasource = $factory->createDataSource('doctrine-orm',  $driverOptions, 'datasource_name');
 
         $dataSource->bindParameters($this->getRequest());
 
@@ -94,7 +94,7 @@ class DefaultController extends Controller
         $driverOptions = array(
             'entity' => 'FSiDemoBundle:News'
         );
-        $datasource = $factory->createDataSource('doctrine',  $driverOptions, 'datasource_name');
+        $datasource = $factory->createDataSource('doctrine-orm',  $driverOptions, 'datasource_name');
 
         $datasource->addField('title', 'text', 'like')
             ->addField('author', 'text', 'like')
