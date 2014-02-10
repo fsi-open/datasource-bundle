@@ -84,12 +84,12 @@ class DataSourceExtension extends \Twig_Extension
     public function getFunctions()
     {
         return array(
-            'datasource_filter_widget' => new \Twig_Function_Method($this, 'datasourceFilter', array('is_safe' => array('html'))),
-            'datasource_filter_count' => new \Twig_SimpleFunction('datasource_filter_count', array($this, 'datasourceFilterCount'), array('is_safe' => array('html'))),
-            'datasource_field_widget' => new \Twig_Function_Method($this, 'datasourceField', array('is_safe' => array('html'))),
-            'datasource_sort_widget' => new \Twig_Function_Method($this, 'datasourceSort', array('is_safe' => array('html'))),
-            'datasource_pagination_widget' =>  new \Twig_Function_Method($this, 'datasourcePagination', array('is_safe' => array('html'))),
-            'datasource_max_results_widget' =>  new \Twig_Function_Method($this, 'datasourceMaxResults', array('is_safe' => array('html'))),
+            new \Twig_SimpleFunction('datasource_filter_widget', array($this, 'datasourceFilter'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFunction('datasource_filter_count', array($this, 'datasourceFilterCount'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFunction('datasource_field_widget', array($this, 'datasourceField'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFunction('datasource_sort_widget', array($this, 'datasourceSort'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFunction('datasource_pagination_widget', array($this, 'datasourcePagination'), array('is_safe' => array('html'))),
+            new \Twig_SimpleFunction('datasource_max_results_widget', array($this, 'datasourceMaxResults'), array('is_safe' => array('html'))),
         );
     }
 
