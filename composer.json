@@ -21,10 +21,14 @@
     },
     "require-dev": {
         "symfony/form" : "~2.2",
-        "symfony/twig-bridge" : "~2.2"
+        "symfony/twig-bridge" : "~2.2",
+        "phpunit/phpunit": "3.7.*"
     },
     "autoload": {
         "psr-0": { "FSi\\Bundle\\DataSourceBundle\\": "" }
+    },
+    "config": {
+        "bin-dir": "bin"
     },
     "target-dir" : "FSi/Bundle/DataSourceBundle",
     "extra": {
