@@ -69,6 +69,37 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
         $this->twig->initRuntime();
     }
 
+    public function testDataSourceFilterCount()
+    {
+        $this->twig->addExtension($this->extension);
+        $this->twig->initRuntime();
+
+        $datasourceView = $this->getDataSourceView('datasource');
+        $fieldView1 = $this->getMock('FSi\Component\DataSource\Field\FieldViewInterface', array('__construct', 'getName', 'getType', 'getComparison', 'getParameter', 'getDataSourceView', 'setDataSourceView', 'hasAttribute', 'getAttribute', 'getAttributes', 'setAttribute', 'removeAttribute'));
+        $fieldView1->expects($this->atLeastOnce())
+            ->method('hasAttribute')
+            ->with('form')
+            ->will($this->returnValue(true));
+        $fieldView2 = $this->getMock('FSi\Component\DataSource\Field\FieldViewInterface', array('__construct', 'getName', 'getType', 'getComparison', 'getParameter', 'getDataSourceView', 'setDataSourceView', 'hasAttribute', 'getAttribute', 'getAttributes', 'setAttribute', 'removeAttribute'));
+        $fieldView2->expects($this->atLeastOnce())
+            ->method('hasAttribute')
+            ->with('form')
+            ->will($this->returnValue(false));
+        $fieldView3 = $this->getMock('FSi\Component\DataSource\Field\FieldViewInterface', array('__construct', 'getName', 'getType', 'getComparison', 'getParameter', 'getDataSourceView', 'setDataSourceView', 'hasAttribute', 'getAttribute', 'getAttributes', 'setAttribute', 'removeAttribute'));
+        $fieldView3->expects($this->atLeastOnce())
+            ->method('hasAttribute')
+            ->with('form')
+            ->will($this->returnValue(true));
+        $datasourceView->expects($this->atLeastOnce())
+            ->method('getFields')
+            ->will($this->returnValue(array($fieldView1, $fieldView2, $fieldView3)));
+
+        $this->assertEquals(
+            $this->extension->datasourceFilterCount($datasourceView),
+            2
+        );
+    }
+
     public function testDataSourceRenderBlock()
     {
         $this->twig->addExtension($this->extension);
