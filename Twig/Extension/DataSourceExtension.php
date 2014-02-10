@@ -85,6 +85,7 @@ class DataSourceExtension extends \Twig_Extension
     {
         return array(
             'datasource_filter_widget' => new \Twig_Function_Method($this, 'datasourceFilter', array('is_safe' => array('html'))),
+            'datasource_filter_count' => new \Twig_SimpleFunction('datasource_filter_count', array($this, 'datasourceFilterCount'), array('is_safe' => array('html'))),
             'datasource_field_widget' => new \Twig_Function_Method($this, 'datasourceField', array('is_safe' => array('html'))),
             'datasource_sort_widget' => new \Twig_Function_Method($this, 'datasourceSort', array('is_safe' => array('html'))),
             'datasource_pagination_widget' =>  new \Twig_Function_Method($this, 'datasourcePagination', array('is_safe' => array('html'))),
@@ -148,6 +149,19 @@ class DataSourceExtension extends \Twig_Extension
         );
 
         return $this->renderTheme($view, $viewData, $blockNames);
+    }
+
+    public function datasourceFilterCount(DataSourceViewInterface $view)
+    {
+        $fields = $view->getFields();
+        $count = 0;
+        /** @var $field \FSi\Component\DataSource\Field\FieldViewInterface */
+        foreach ($fields as $field) {
+            if ($field->hasAttribute('form')) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     public function datasourceField(FieldViewInterface $fieldView, array $vars = array())
