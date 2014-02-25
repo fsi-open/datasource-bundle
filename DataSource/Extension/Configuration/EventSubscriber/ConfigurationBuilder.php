@@ -53,7 +53,7 @@ class ConfigurationBuilder implements EventSubscriberInterface
                 $configuration = $this->getDataSourceConfiguration($bundle->getPath(), $dataSource->getName());
 
                 if (is_array($configuration)) {
-                    $dataSourceConfiguration = array_merge($dataSourceConfiguration, $configuration);
+                    $dataSourceConfiguration = $configuration;
                 }
             }
         }
