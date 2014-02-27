@@ -15,4 +15,4 @@ Documentation:
 * [Installation](Resources/docs/installation.md)
 * [Basic Usage](Resources/docs/basic_usage.md)
 * [Templating](Resources/docs/templating.md)
-* [Available fields, comparisons and their options](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/doctrine.md#provided-fields)
+* [Available fields, comparisons and their options](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/doctrine-orm.md#provided-fields)
