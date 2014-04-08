@@ -31,7 +31,7 @@
             <td>
                 <ul>
                     <li><code>true</code></li>
-                    <li><code>where</code></li>
+                    <li><code>'where'</code></li>
                     <li><code>$field->getName()</code></li>
                 </ul>
             </td>
@@ -58,7 +58,7 @@
                 <ul>
                     <li><code>null</code></li>
                     <li><code>true</code></li>
-                    <li><code>``empty`` (optional)</code></li>
+                    <li><code>empty</code></li>
 
                 </ul>
             </td>
@@ -92,22 +92,25 @@
                     <li><code>array()</code></li>
                     <li><code>array()</code></li>
                     <li><code>array()</code></li>
-                    <li><code>``empty`` (optional)</code></li>
-                    <li><code>``empty`` (optional)</code></li>
+                    <li><code>empty</code></li>
+                    <li><code>empty<code></li>
                 </ul>
             </td>
         </tr>
     </tbody>
 </table>
 
+####Available Comparison Types:
+* eq
 
 ### Usage example
 
 ```php
-$datasource->addField('id', 'number', 'eq')
+$datasource->addField('id', 'boolean', 'eq')
 ```
 
 Result as DQL:
 ```dql
 SELECT u FROM ExampleBundle:User u WHERE u.id = :id
 ```
+[More advanced examples](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/doctrine-orm.md#advanced-use-with-querybuilder)

@@ -31,7 +31,7 @@
             <td>
                 <ul>
                     <li><code>true</code></li>
-                    <li><code>where</code></li>
+                    <li><code>'where'</code></li>
                     <li><code>$field->getName()</code></li>
                 </ul>
             </td>
@@ -58,7 +58,7 @@
                 <ul>
                     <li><code>null</code></li>
                     <li><code>true</code></li>
-                    <li><code>``empty`` (optional)</code></li>
+                    <li><code>empty</code></li>
 
                 </ul>
             </td>
@@ -92,14 +92,24 @@
                     <li><code>array()</code></li>
                     <li><code>array()</code></li>
                     <li><code>array()</code></li>
-                    <li><code>``empty`` (optional)</code></li>
-                    <li><code>``empty`` (optional)</code></li>
+                    <li><code>empty</code></li>
+                    <li><code>empty<code></li>
                 </ul>
             </td>
         </tr>
     </tbody>
 </table>
 
+####Available Comparison Types:
+* eq
+* neq
+* lt
+* lte
+* gt
+* gte
+* in
+* nin (not in),
+* between
 
 ### Usage example
 
