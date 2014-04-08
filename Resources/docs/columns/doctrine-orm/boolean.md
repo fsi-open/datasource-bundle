@@ -12,7 +12,7 @@
     <tbody>
 
         <tr>
-            <td>Doctrine Field Options</td>
+            <td>Options</td>
             <td>
                 <ul>
                     <li>auto_alias</li>
@@ -32,7 +32,7 @@
                 <ul>
                     <li><code>true</code></li>
                     <li><code>where</code></li>
-                    <li><code></code></li>
+                    <li><code>$field->getName()</code></li>
                 </ul>
             </td>
         </tr>
@@ -58,7 +58,7 @@
                 <ul>
                     <li><code>null</code></li>
                     <li><code>true</code></li>
-                    <li><code></code></li>
+                    <li><code>``empty`` (optional)</code></li>
 
                 </ul>
             </td>
@@ -92,61 +92,22 @@
                     <li><code>array()</code></li>
                     <li><code>array()</code></li>
                     <li><code>array()</code></li>
-                    <li><code></code></li>
-                    <li><code></code></li>
+                    <li><code>``empty`` (optional)</code></li>
+                    <li><code>``empty`` (optional)</code></li>
                 </ul>
             </td>
         </tr>
     </tbody>
 </table>
 
+
 ### Usage example
 
-Input class
-
 ```php
-class User
-{
-    /* @var \Boolean */
-    public $active;
-
-
-}
-```
-======
-#### Example 1
-
-**Column Configuration**
-```php
-$datasource->addField('active', 'boolean', 'eq');
+$datasource->addField('id', 'number', 'eq')
 ```
 
-**Input**
-```php
-$user = new User();
-$user->active = false;
+Result as DQL:
+```dql
+SELECT u FROM ExampleBundle:User u WHERE u.id = :id
 ```
-
-**Output**
-> false
-
-======
-#### Example 2
-
-**Column Configuration**
-```php
-$datasource->addField('active', 'boolean', array(
-    'auto_alias' => true,
-    'default_sort' => 'desc',
-    'clause' => 'where'
-));
-```
-
-**Input**
-```php
-$user = new User();
-$user->active = true;
-```
-
-**Output**
-> true
