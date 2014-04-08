@@ -123,7 +123,7 @@ $datasource->addField('createdAt','date','lte',array(
 
 Result as DQL:
 ```dql
-SELECT e FROM ExampleBundle:User e WHERE e.updatedAt <= :createdAt
+SELECT e FROM FSiDemoBundle:News e WHERE e.updatedAt <= :createdAt
 ```
 
 [More advanced examples](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/doctrine-orm.md#advanced-use-with-querybuilder)

@@ -106,11 +106,12 @@
 ### Usage example
 
 ```php
-$datasource->addField('id', 'boolean', 'eq')
+$datasource->addField('visible', 'boolean', 'eq')
 ```
 
 Result as DQL:
 ```dql
-SELECT u FROM ExampleBundle:User u WHERE u.id = :id
+SELECT n FROM FSiDemoBundle:News n WHERE n.visible = :visible
 ```
+
 [More advanced examples](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/doctrine-orm.md#advanced-use-with-querybuilder)

@@ -10,84 +10,56 @@
         </tr>
     </head>
     <tbody>
+
         <tr>
-            <td>Options </td>
+            <td>Options</td>
             <td>
                 <ul>
-                    <li>round_mode</li>
-                    <li>precision</li>
-                    <li>format</li>
-                    <li>format_decimals</li>
-                    <li>format_dec_point</li>
-                    <li>format_thousands_sep</li>
+                    <li>auto_alias</li>
+                    <li>clause</li>
+                    <li>field (optional) </li>
+
                 </ul>
             </td>
             <td>
                 <ul>
-                    <li>integer</li>
-                    <li>integer</li>
-                    <li>boolean</li>
-                    <li>integer</li>
-                    <li>string</li>
-                    <li>string</li>
-                  </ul>
-            </td>
-            <td>
-                <ul>
-                    <li><code>null</code></li>
-                    <li><code>2</code></li>
-                    <li><code>false</code></li>
-                    <li><code>2</code></li>
-                    <li><code>'.'</code></li>
-                    <li><code>','</code></li>
-                </ul>
-            </td>
-        <tr>
-        <tr>
-            <td>Default Column Options Extension</td>
-            <td>
-                <ul>
-                    <li>label</li>
-                    <li>field_mapping</li>
-                    <li>display_order</li>
+                    <li>bool</li>
+                    <li>where|having</li>
+                    <li>string|null</li>
                 </ul>
             </td>
             <td>
                 <ul>
-                    <li>string</li>
-                    <li>array</li>
-                    <li>integer|null</li>
-                </td>
-            </td>
-            <td>
-                <ul>
-                    <li><code>$column->getName()</code></li>
-                    <li><code>array($column->getName())</code></li>
-                    <li><code>null</code></li>
+                    <li><code>true</code></li>
+                    <li><code>'where'</code></li>
+                    <li><code>$field->getName()</code></li>
                 </ul>
             </td>
         </tr>
         <tr>
-            <td>Value Format Column Options Extension</td>
+            <td>Field Extension Options</td>
             <td>
                 <ul>
-                    <li>value_glue</li>
-                    <li>value_format</li>
-                    <li>empty_value</li>
+                    <li>default_sort</li>
+                    <li>sortable</li>
+                    <li>default_sort_priority (optional)</li>
                 </ul>
             </td>
             <td>
                 <ul>
-                    <li>string|null</li>
-                    <li>string|Closure|null</li>
-                    <li>string</li>
-                </td>
+                    <li>null|asc|desc</li>
+                    <li>bool</li>
+                    <li>integer</li>
+
+
+                </ul>
             </td>
             <td>
                 <ul>
                     <li><code>null</code></li>
-                    <li><code>null</code></li>
-                    <li><code>" "</code> (empty string)</li>
+                    <li><code>true</code></li>
+                    <li><code>empty</code></li>
+
                 </ul>
             </td>
         </tr>
@@ -95,25 +67,60 @@
             <td>Form Extension</td>
             <td>
                 <ul>
-                    <li>editable</li>
+                    <li>form_filter</li>
                     <li>form_options</li>
-                    <li>form_type</li>
+                    <li>form_from_options</li>
+                    <li>form_to_options</li>
+                    <li>form_type (optional) </li>
+                    <li>form_order (optional) </li>
+
                 </ul>
             </td>
             <td>
                 <ul>
-                    <li>boolean</li>
+                    <li>bool</li>
                     <li>array</li>
                     <li>array</li>
+                    <li>array</li>
+                    <li>integer</li>
+                    <li>string</li>
                 </td>
             </td>
             <td>
                 <ul>
-                    <li><code>false</code></li>
+                    <li><code>true</code></li>
                     <li><code>array()</code></li>
                     <li><code>array()</code></li>
+                    <li><code>array()</code></li>
+                    <li><code>empty</code></li>
+                    <li><code>empty</code></li>
                 </ul>
             </td>
         </tr>
     </tbody>
 </table>
+
+####Available Comparison Types:
+* eq
+* neq
+* lt
+* lte
+* gt
+* gte
+* in
+* notIn,
+* between
+* isNull
+
+### Usage example
+
+```php
+$datasource->addField('deletedAt','datetime','lte')
+```
+
+Result as DQL:
+```dql
+SELECT n FROM FSiDemoBundle:News n WHERE n.deletedAt <= :deletedAt
+```
+
+[More advanced examples](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/doctrine-orm.md#advanced-use-with-querybuilder)
