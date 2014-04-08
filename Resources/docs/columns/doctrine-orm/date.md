@@ -93,7 +93,7 @@
                     <li><code>array()</code></li>
                     <li><code>array()</code></li>
                     <li><code>empty</code></li>
-                    <li><code>empty<code></li>
+                    <li><code>empty</code></li>
                 </ul>
             </td>
         </tr>
