@@ -110,12 +110,25 @@
 
 ### Usage example
 
+### Usage example
+
+If you don't know how to use datasource-bundle you should look at [docs](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/collection.md).
+
 ```php
-$datasource->addField('deletedAt','datetime','lte')
+$datasource
+    ->addField('id', 'number', 'eq',array(
+        'default_sort' => 'desc'
+    ))
+    ->addField('changedAt','datetime','between', array(
+        'field' => 'date'
+    ));
 ```
+Output:
+```php
+$this->andExpressions($expressionList); //in this step $expresionList contain filter for id, date fields
+ClosureExpressionVisitor::getObjectFieldValue($object, $field) == $value; // $field less than or equal $value for $object, $field contain id field
+$this->andExpressions($expressionList) // in this step $expresionList contain two filters for date lte and gte
+ClosureExpressionVisitor::getObjectFieldValue($object, $field) >= $value; // $field greater than or equal $value for $object
+ClosureExpressionVisitor::getObjectFieldValue($object, $field) <= $value; // $field less than or equal $value for $object
 
-Result as DQL:
-```dql
-SELECT n FROM FSiDemoBundle:News n WHERE n.deletedAt <= :deletedAt
 ```
-

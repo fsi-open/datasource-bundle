@@ -100,11 +100,17 @@
 
 ### Usage example
 
-```php
-$datasource->addField('visible', 'boolean', 'eq')
-```
+If you don't know how to use datasource-bundle you should look at [docs](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/collection.md).
 
-Result as DQL:
-```dql
-SELECT n FROM FSiDemoBundle:News n WHERE n.visible = :visible
+```php
+$datasource
+    ->addField('id', 'boolean', 'eq',array(
+        'default_sort' => 'desc'
+    ))
+```
+Output:
+```php
+$this->andExpressions($expressionList); //in this step $expresionList contain filter for id, date fields
+ClosureExpressionVisitor::getObjectFieldValue($object, $field) == $value; // $field less than or equal $value for $object, $field contain id field
+
 ```
