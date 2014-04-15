@@ -104,7 +104,7 @@ If you don't know how to use datasource-bundle you should look at [docs](https:/
 
 ```php
 $datasource
-    ->addField('id', 'boolean', 'eq',array(
+    ->addField('active', 'boolean', 'eq',array(
         'default_sort' => 'desc'
     ))
 ```

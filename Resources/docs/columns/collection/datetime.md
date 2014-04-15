@@ -116,17 +116,12 @@ If you don't know how to use datasource-bundle you should look at [docs](https:/
 
 ```php
 $datasource
-    ->addField('id', 'number', 'eq',array(
-        'default_sort' => 'desc'
-    ))
     ->addField('changedAt','datetime','between', array(
         'field' => 'date'
     ));
 ```
 Output:
 ```php
-$this->andExpressions($expressionList); //in this step $expresionList contain filter for id, date fields
-ClosureExpressionVisitor::getObjectFieldValue($object, $field) == $value; // $field less than or equal $value for $object, $field contain id field
 $this->andExpressions($expressionList) // in this step $expresionList contain two filters for date lte and gte
 ClosureExpressionVisitor::getObjectFieldValue($object, $field) >= $value; // $field greater than or equal $value for $object
 ClosureExpressionVisitor::getObjectFieldValue($object, $field) <= $value; // $field less than or equal $value for $object
