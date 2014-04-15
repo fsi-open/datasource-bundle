@@ -111,11 +111,14 @@
 
 ### Usage example
 
+If you don't know how to use datasource-bundle you should look at [docs](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/collection.md).
+
 ```php
-$datasource->addField('expirationTime','time','gt')
+$datasource->addField('expiration','time','eq');
 ```
 
-Result as DQL:
-```dql
-SELECT n FROM FSiDemoBundle:News n WHERE n.expirationTime > :expirationTime
+Output:
+```php
+$citeria->where($criteria->expr()->gte('expiration',$expiration));
+
 ```

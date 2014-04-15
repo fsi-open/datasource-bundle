@@ -110,12 +110,14 @@
 
 ### Usage example
 
+If you don't know how to use datasource-bundle you should look at [docs](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/collection.md).
+
 ```php
-$datasource->addField('quantity','number','gt')
+$datasource->addField('quantity','number','lt');
 ```
 
-Result as DQL:
-```dql
-SELECT n FROM FSiDemoBundle:OrderItem o WHERE o.quantity > :quantity
-```
+Output:
+```php
+$citeria->where($criteria->expr()->lt('quantity',$quantity));
 
+```

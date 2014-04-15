@@ -110,7 +110,6 @@ $datasource
 ```
 Output:
 ```php
-$this->andExpressions($expressionList); //in this step $expresionList contain filter for id, date fields
-ClosureExpressionVisitor::getObjectFieldValue($object, $field) == $value; // $field less than or equal $value for $object, $field contain id field
+$citeria->where($criteria->expr()->eq('active',$value))
 
 ```

@@ -115,15 +115,14 @@
 If you don't know how to use datasource-bundle you should look at [docs](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/collection.md).
 
 ```php
-$datasource
-    ->addField('changedAt','datetime','between', array(
-        'field' => 'date'
-    ));
+$datasource->addField('created','datetime','between',array(
+           'field' => 'createdAt'
+       ));
 ```
+
 Output:
 ```php
-$this->andExpressions($expressionList) // in this step $expresionList contain two filters for date lte and gte
-ClosureExpressionVisitor::getObjectFieldValue($object, $field) >= $value; // $field greater than or equal $value for $object
-ClosureExpressionVisitor::getObjectFieldValue($object, $field) <= $value; // $field less than or equal $value for $object
+$citeria->where($criteria->expr()->gte('createdAt',$from))
+        ->andWhere($criteria->expr()->lte('createdAt',$to));
 
 ```

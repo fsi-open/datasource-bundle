@@ -106,11 +106,14 @@
 
 ### Usage example
 
+If you don't know how to use datasource-bundle you should look at [docs](https://github.com/fsi-open/datasource/blob/master/doc/en/drivers/collection.md).
+
 ```php
-$datasource->addField('title','text','contains')
+$datasource->addField('title','text','contains');
 ```
 
-Result as DQL:
-```dql
-SELECT n FROM FSiDemoBundle:News n WHERE n.title LIKE :title
+Output:
+```php
+$citeria->where($criteria->expr()->contains('title',$title));
+
 ```
