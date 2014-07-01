@@ -9,12 +9,15 @@
 
 namespace FSi\Bundle\DataSourceBundle\DataSource\Extension\Configuration\EventSubscriber;
 
+use FSi\Bundle\DataSourceBundle\DataSource\Extension\Configuration\ConfigurationLoader;
 use FSi\Component\DataSource\DataSourceInterface;
 use FSi\Component\DataSource\Event\DataSourceEvent;
 use FSi\Component\DataSource\Event\DataSourceEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Yaml\Parser;
+use Symfony\Component\Yaml\Yaml;
 
 class ConfigurationBuilder implements EventSubscriberInterface
 {
@@ -24,11 +27,18 @@ class ConfigurationBuilder implements EventSubscriberInterface
     protected $kernel;
 
     /**
-     * @param KernelInterface $kernel
+     * @var \FSi\Bundle\DataSourceBundle\DataSource\Extension\Configuration\ConfigurationLoader
      */
-    function __construct(KernelInterface $kernel)
+    protected $configurationLoader;
+
+    /**
+     * @param KernelInterface $kernel
+     * @param \FSi\Bundle\DataSourceBundle\DataSource\Extension\Configuration\ConfigurationLoader $configurationLoader
+     */
+    function __construct(KernelInterface $kernel, ConfigurationLoader $configurationLoader)
     {
         $this->kernel = $kernel;
+        $this->configurationLoader = $configurationLoader;
     }
 
     /**
@@ -50,7 +60,8 @@ class ConfigurationBuilder implements EventSubscriberInterface
         $dataSourceConfiguration = array();
         foreach ($this->kernel->getBundles() as $bundle) {
             if ($this->hasDataSourceConfiguration($bundle->getPath(), $dataSource->getName())) {
-                $configuration = $this->getDataSourceConfiguration($bundle->getPath(), $dataSource->getName());
+
+                $configuration = $this->getDataSourceConfiguration($bundle, $dataSource->getName());
 
                 if (is_array($configuration)) {
                     $dataSourceConfiguration = $configuration;
@@ -74,14 +85,26 @@ class ConfigurationBuilder implements EventSubscriberInterface
     }
 
     /**
-     * @param string $bundlePath
+     * @param \Symfony\Component\HttpKernel\Bundle\BundleInterface $bundle
      * @param string $dataSourceName
      * @return mixed
      */
-    protected function getDataSourceConfiguration($bundlePath, $dataSourceName)
+    protected function getDataSourceConfiguration(BundleInterface $bundle, $dataSourceName)
     {
-        $yamlParser = new Parser();
-        return $yamlParser->parse(file_get_contents(sprintf($bundlePath . '/Resources/config/datasource/%s.yml', $dataSourceName)));
+
+
+        $config = Yaml::parse(sprintf(
+            '%s/Resources/config/datasource/%s.yml',
+            $bundle->getPath(),
+            $dataSourceName
+        ));
+
+
+        if (isset($config['imports']) && $config['imports']) {
+            $config = $this->configurationLoader->load($config, $bundle);
+        }
+
+        return $config;
     }
 
     /**
@@ -90,6 +113,7 @@ class ConfigurationBuilder implements EventSubscriberInterface
      */
     protected function buildConfiguration(DataSourceInterface $dataSource, array $configuration)
     {
+
         foreach ($configuration['fields'] as $name => $field) {
             $type = array_key_exists('type', $field)
                 ? $field['type']
