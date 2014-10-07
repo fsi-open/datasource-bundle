@@ -48,6 +48,7 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
         $twig = new \Twig_Environment($loader);
         $twig->addExtension(new TranslationExtension(new StubTranslator()));
         $twig->addExtension(new FormExtension($renderer));
+        $twig->addGlobal('global_var', 'global_value');
         $this->twig = $twig;
 
         $this->extension = new DataSourceExtension($this->getContainer(), 'datasource.html.twig');
@@ -128,7 +129,8 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
             ->method('displayBlock')
             ->with('datasource_filter', array(
                 'datasource' => $datasourceView,
-                'vars' => array()
+                'vars' => array(),
+                'global_var' => 'global_value'
             ))
             ->will($this->returnValue(true));
 
@@ -175,7 +177,8 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
             ->method('displayBlock')
             ->with('datasource_filter', array(
                 'datasource' => $datasourceView,
-                'vars' => array()
+                'vars' => array(),
+                'global_var' => 'global_value'
             ))
             ->will($this->returnValue(true));
 
