@@ -45,17 +45,17 @@ class DataSourceExtension extends \Twig_Extension
     private $additional_parameters;
 
     /**
-     * @var Twig_TemplateInterface
+     * @var \Twig_TemplateInterface
      */
     private $baseTemplate;
 
     /**
-     * @var ContainerInterace
+     * @var \Symfony\Component\DependencyInjection\ContainerInterface
      */
     private $container;
 
     /**
-     * @var Twig_Environment
+     * @var \Twig_Environment
      */
     private $environment;
 
@@ -467,6 +467,8 @@ class DataSourceExtension extends \Twig_Extension
     private function renderTheme(DataSourceViewInterface $view, array $contextVars = array(), $availableBlocks = array())
     {
         $templates = $this->getTemplates($view);
+
+        $contextVars = $this->environment->mergeGlobals($contextVars);
 
         ob_start();
 
