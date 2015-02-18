@@ -9,9 +9,14 @@
         <parameter key="datasource.extension.class">FSi\Component\DataSource\Extension\Symfony\DependencyInjection\DependencyInjectionExtension</parameter>
         <parameter key="datasource.driver.factory.manager.class">FSi\Component\DataSource\Driver\DriverFactoryManager</parameter>
         <parameter key="datasource.driver.extension.class">FSi\Component\DataSource\Extension\Symfony\DependencyInjection\Driver\DriverExtension</parameter>
+        <parameter key="datasource.extension.form.type.between.class">FSi\Component\DataSource\Extension\Symfony\Form\Type\BetweenType</parameter>
     </parameters>
 
     <services>
+        <!-- Form types -->
+        <service id="datasource.extension.form.type.between" class="%datasource.extension.form.type.between.class%">
+            <tag name="form.type" alias="datasource_between" />
+        </service>
 
         <!-- DataSource extensions -->
         <service id="datasource.extension" class="%datasource.extension.class%">
