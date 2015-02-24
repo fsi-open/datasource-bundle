@@ -11,7 +11,7 @@ namespace FSi\Bundle\DataSourceBundle\Twig\Node;
 
 class DataSourceRouteNode extends \Twig_Node
 {
-    public function __construct(\Twig_NodeInterface $dataGrid, \Twig_NodeInterface $route, \Twig_Node_Expression_Array $additional_parameters, $lineno, $tag = null)
+    public function __construct(\Twig_NodeInterface $dataGrid, \Twig_NodeInterface $route, \Twig_Node_Expression $additional_parameters, $lineno, $tag = null)
     {
         parent::__construct(array('datasource' => $dataGrid, 'route' => $route, 'additional_parameters' => $additional_parameters), array(), $lineno, $tag);
     }

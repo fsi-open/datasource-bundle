@@ -26,7 +26,7 @@ class DataSourceRouteTokenParser extends \Twig_TokenParser
         if ($this->parser->getStream()->test(\Twig_Token::NAME_TYPE, 'with')) {
             $this->parser->getStream()->next();
 
-            if ($this->parser->getStream()->test(\Twig_Token::PUNCTUATION_TYPE)) {
+            if ($this->parser->getStream()->test(\Twig_Token::PUNCTUATION_TYPE) || $this->parser->getStream()->test(\Twig_Token::NAME_TYPE)) {
                 $additional_parameters = $this->parser->getExpressionParser()->parseExpression();
             }
         }
