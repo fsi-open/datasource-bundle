@@ -1,7 +1,7 @@
 datasource:
     pagination:
         first: "pierwsza"
-        prev: "poprzedna"
+        prev: "poprzednia"
         next: "następna"
         last: "ostatnia"
     form:
