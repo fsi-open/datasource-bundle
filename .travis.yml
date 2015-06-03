@@ -15,7 +15,7 @@ env:
   - COMPOSER_FLAGS="--prefer-lowest"
 
 before_script:
-    - composer update --prefer-source
+    - composer update ${COMPOSER_FLAGS}
 
 script: bin/phpunit
 

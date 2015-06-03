@@ -114,7 +114,7 @@ class DataSourceExtension extends \Twig_Extension
      */
     public function setTheme(DataSourceViewInterface $dataSource, $theme, array $vars = array())
     {
-        $this->themes[$dataSource->getName()] = ($theme instanceof \Twig_TemplateInterface)
+        $this->themes[$dataSource->getName()] = ($theme instanceof \Twig_Template)
             ? $theme
             : $this->environment->loadTemplate($theme);
         $this->themesVars[$dataSource->getName()] = $vars;

@@ -16,6 +16,7 @@ use Symfony\Bridge\Twig\Form\TwigRendererEngine;
 use Symfony\Bridge\Twig\Extension\FormExtension;
 use Symfony\Bridge\Twig\Extension\TranslationExtension;
 use Symfony\Bridge\Twig\Tests\Extension\Fixtures\StubTranslator;
+use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * @author Stanislav Prokopov <stanislav.prokopov@gmail.com>
@@ -35,8 +36,9 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
+        $subPath = version_compare(Kernel::VERSION, '2.7.0', '<') ? 'Symfony/Bridge/Twig/' : '';
         $loader = new \Twig_Loader_Filesystem(array(
-            __DIR__ . '/../../../vendor/symfony/twig-bridge/Symfony/Bridge/Twig/Resources/views/Form',
+            __DIR__ . '/../../../vendor/symfony/twig-bridge/' . $subPath . 'Resources/views/Form',
             __DIR__ . '/../../../Resources/views', // datasource base theme
         ));
 
@@ -105,7 +107,11 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
     {
         $this->twig->addExtension($this->extension);
         $this->twig->initRuntime();
-        $template = $this->getMock('\Twig_TemplateInterface', array('hasBlock', 'render', 'display', 'getEnvironment', 'displayBlock', 'getParent'));
+        $template = $this->getMock(
+            '\Twig_Template',
+            array('hasBlock', 'render', 'display', 'getEnvironment', 'displayBlock', 'getParent', 'getTemplateName', 'doDisplay'),
+            array($this->twig)
+        );
 
         $template->expects($this->at(0))
             ->method('hasBlock')
@@ -142,8 +148,16 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
         $this->twig->addExtension($this->extension);
         $this->twig->initRuntime();
 
-        $parent = $this->getMock('\Twig_TemplateInterface', array('hasBlock', 'render', 'display', 'getEnvironment', 'displayBlock', 'getParent'));
-        $template = $this->getMock('\Twig_TemplateInterface', array('hasBlock', 'render', 'display', 'getEnvironment', 'displayBlock', 'getParent'));
+        $parent = $this->getMock(
+            '\Twig_Template',
+            array('hasBlock', 'render', 'display', 'getEnvironment', 'displayBlock', 'getParent', 'getTemplateName', 'doDisplay'),
+            array($this->twig)
+        );
+        $template = $this->getMock(
+            '\Twig_Template',
+            array('hasBlock', 'render', 'display', 'getEnvironment', 'displayBlock', 'getParent', 'getTemplateName', 'doDisplay'),
+            array($this->twig)
+        );
 
         $template->expects($this->at(0))
             ->method('hasBlock')
