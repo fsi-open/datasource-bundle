@@ -11,7 +11,7 @@ namespace FSi\Bundle\DataSourceBundle\Twig\Node;
 
 class DataSourceThemeNode extends \Twig_Node
 {
-    public function __construct(\Twig_NodeInterface $dataGrid, \Twig_NodeInterface $theme, \Twig_Node_Expression_Array $vars, $lineno, $tag = null)
+    public function __construct(\Twig_Node $dataGrid, \Twig_Node $theme, \Twig_Node_Expression_Array $vars, $lineno, $tag = null)
     {
         parent::__construct(array('datasource' => $dataGrid, 'theme' => $theme, 'vars' => $vars), array(), $lineno, $tag);
     }
