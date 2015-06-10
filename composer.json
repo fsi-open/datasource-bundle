@@ -27,7 +27,7 @@
         "phpunit/phpunit": "3.7.*"
     },
     "autoload": {
-        "psr-0": { "FSi\\Bundle\\DataSourceBundle\\": "" }
+        "psr-4": { "FSi\\Bundle\\DataSourceBundle\\": "" }
     },
     "config": {
         "bin-dir": "bin"
