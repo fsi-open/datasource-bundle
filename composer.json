@@ -32,7 +32,6 @@
     "config": {
         "bin-dir": "bin"
     },
-    "target-dir" : "FSi/Bundle/DataSourceBundle",
     "extra": {
         "branch-alias": {
             "dev-master": "1.3-dev"
