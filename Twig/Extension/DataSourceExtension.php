@@ -191,18 +191,16 @@ class DataSourceExtension extends \Twig_Extension
     {
         $optionsResolver = new OptionsResolver();
         $optionsResolver
-        ->setDefaults(array(
+            ->setDefaults(array(
                 'route' => $this->getCurrentRoute($dataSource),
                 'additional_parameters' => array(),
                 'ascending' => '&uarr;',
                 'descending' => '&darr;',
-        ))
-        ->setAllowedTypes(array(
-                'route' => 'string',
-                'additional_parameters' => 'array',
-                'ascending' => 'string',
-                'descending' => 'string',
-        ));
+            ))
+            ->setAllowedTypes('route', 'string')
+            ->setAllowedTypes('additional_parameters', 'array')
+            ->setAllowedTypes('ascending', 'string')
+            ->setAllowedTypes('descending', 'string');
         $options = $optionsResolver->resolve($options);
         return $options;
     }
@@ -241,7 +239,7 @@ class DataSourceExtension extends \Twig_Extension
     {
         $optionsResolver = new OptionsResolver();
         $optionsResolver
-            ->setOptional(array('max_pages'))
+            ->setDefined(array('max_pages'))
             ->setDefaults(array(
                 'route' => $this->getCurrentRoute($dataSource),
                 'additional_parameters' => array(),
@@ -249,14 +247,12 @@ class DataSourceExtension extends \Twig_Extension
                 'disabled_class' => 'disabled',
                 'translation_domain' => 'DataSourceBundle'
             ))
-            ->setAllowedTypes(array(
-                'route' => 'string',
-                'additional_parameters' => 'array',
-                'max_pages' => 'int',
-                'active_class' => 'string',
-                'disabled_class' => 'string',
-                'translation_domain' => 'string'
-            ));
+            ->setAllowedTypes('route', 'string')
+            ->setAllowedTypes('additional_parameters', 'array')
+            ->setAllowedTypes('max_pages', 'int')
+            ->setAllowedTypes('active_class', 'string')
+            ->setAllowedTypes('disabled_class', 'string')
+            ->setAllowedTypes('translation_domain', 'string');
         $options = $optionsResolver->resolve($options);
         return $options;
     }
@@ -340,12 +336,10 @@ class DataSourceExtension extends \Twig_Extension
                 'additional_parameters' => array(),
                 'results' => array(5, 10, 20, 50, 100)
             ))
-            ->setAllowedTypes(array(
-                'route' => 'string',
-                'active_class' => 'string',
-                'additional_parameters' => 'array',
-                'results' => 'array'
-            ));
+            ->setAllowedTypes('route', 'string')
+            ->setAllowedTypes('active_class', 'string')
+            ->setAllowedTypes('additional_parameters', 'array')
+            ->setAllowedTypes('results', 'array');
 
         $options = $optionsResolver->resolve($options);
 

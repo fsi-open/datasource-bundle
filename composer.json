@@ -14,9 +14,10 @@
         "php": ">=5.3.3",
         "twig/twig": "~1.12",
         "symfony/framework-bundle" : "~2.2",
+        "symfony/options-resolver": "~2.6",
         "symfony/dependency-injection" : "~2.2",
         "symfony/yaml": "~2.2",
-        "fsi/datasource": "1.2.*@dev",
+        "fsi/datasource": "~1.2@dev",
         "doctrine/orm": "~2.3",
         "doctrine/collections": "~1.0"
     },
@@ -26,7 +27,7 @@
         "phpunit/phpunit": "3.7.*"
     },
     "autoload": {
-        "psr-0": { "FSi\\Bundle\\DataSourceBundle\\": "" }
+        "psr-4": { "FSi\\Bundle\\DataSourceBundle\\": "" }
     },
     "config": {
         "bin-dir": "bin"
