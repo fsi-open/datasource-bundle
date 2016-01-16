@@ -13,17 +13,17 @@
     "require": {
         "php": ">=5.3.3",
         "twig/twig": "~1.12",
-        "symfony/framework-bundle" : "~2.2",
-        "symfony/options-resolver": "~2.6",
-        "symfony/dependency-injection" : "~2.2",
-        "symfony/yaml": "~2.2",
+        "symfony/framework-bundle" : "^2.2|^3.0",
+        "symfony/options-resolver": "^2.6|^3.0",
+        "symfony/dependency-injection" : "^2.2|^3.0",
+        "symfony/yaml": "^2.2|^3.0",
         "fsi/datasource": "~1.2@dev",
         "doctrine/orm": "~2.3",
         "doctrine/collections": "~1.0"
     },
     "require-dev": {
-        "symfony/form" : "~2.2",
-        "symfony/twig-bridge" : "~2.2",
+        "symfony/form" : "^2.2|^3.0",
+        "symfony/twig-bridge" : "^2.2|^3.0",
         "phpunit/phpunit": "3.7.*"
     },
     "autoload": {
