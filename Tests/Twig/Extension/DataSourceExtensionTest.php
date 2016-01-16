@@ -211,7 +211,9 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
 
     private function getContainer()
     {
-        $container = $this->getMock('\Symfony\Component\DependencyInjection\ContainerInterface', array('set', 'has', 'getParameter', 'hasParameter', 'setParameter', 'enterScope', 'leaveScope', 'addScope', 'hasScope', 'isScopeActive', 'get'));
+        $container = $this->getMock(
+            '\Symfony\Component\DependencyInjection\ContainerInterface'
+        );
         $container->expects($this->any())
             ->method('get')
             ->with('router')
