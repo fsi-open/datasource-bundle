@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class DriverExtension extends DriverAbstractExtension
 {
     /**
-     * @var \Symfony\Component\DependencyInjection\ContainerInterface
+     * @var ContainerInterface
      */
     protected $container;
 
@@ -43,7 +43,7 @@ class DriverExtension extends DriverAbstractExtension
     protected $subscriberServiceIds;
 
     /**
-     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+     * @param ContainerInterface $container
      * @param string $driverType
      * @param array $fieldServiceIds
      * @param array $fieldExtensionServiceIds

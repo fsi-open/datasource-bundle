@@ -9,19 +9,13 @@
 
 namespace FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Field;
 
-use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Type\BetweenType;
 use FSi\Component\DataSource\Field\FieldAbstractExtension;
 use FSi\Component\DataSource\Field\FieldTypeInterface;
 use FSi\Component\DataSource\DataSourceInterface;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormFactory;
 use Symfony\Component\Form\FormInterface;
 use FSi\Component\DataSource\Event\FieldEvents;
 use FSi\Component\DataSource\Event\FieldEvent;
-use Symfony\Component\Form\FormTypeInterface;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Translation\TranslatorInterface;
 
 /**
@@ -30,7 +24,7 @@ use Symfony\Component\Translation\TranslatorInterface;
 class FormFieldExtension extends FieldAbstractExtension
 {
     /**
-     * @var \Symfony\Component\Form\FormFactory
+     * @var FormFactory
      */
     protected $formFactory;
 
@@ -183,9 +177,9 @@ class FormFieldExtension extends FieldAbstractExtension
     /**
      * Builds form.
      *
-     * @param \FSi\Component\DataSource\Field\FieldTypeInterface $field
+     * @param FieldTypeInterface $field
      * @param bool $force
-     * @return \Symfony\Component\Form\Form
+     * @return FormInterface
      */
     protected function getForm(FieldTypeInterface $field, $force = false)
     {
@@ -208,7 +202,7 @@ class FormFieldExtension extends FieldAbstractExtension
 
         $form = $this->formFactory->createNamed(
             $datasource->getName(),
-            $this->isFqcnFormTypeRequired()
+            $this->isFqcnFormTypePossible()
                 ? 'Symfony\Component\Form\Extension\Core\Type\CollectionType'
                 : 'collection',
             null,
@@ -216,7 +210,7 @@ class FormFieldExtension extends FieldAbstractExtension
         );
         $fieldsForm = $this->formFactory->createNamed(
             DataSourceInterface::PARAMETER_FIELDS,
-            $this->isFqcnFormTypeRequired()
+            $this->isFqcnFormTypePossible()
                 ? 'Symfony\Component\Form\Extension\Core\Type\FormType'
                 : 'form',
             null,
@@ -253,15 +247,15 @@ class FormFieldExtension extends FieldAbstractExtension
     }
 
     /**
-     * @param \Symfony\Component\Form\FormInterface $form
-     * @param \FSi\Component\DataSource\Field\FieldTypeInterface $field
+     * @param FormInterface $form
+     * @param FieldTypeInterface $field
      * @param array $options
      */
     protected function buildBetweenComparisonForm(FormInterface $form, FieldTypeInterface $field, $options = array())
     {
         $betweenBuilder = $this->getFormFactory()->createNamedBuilder(
             $field->getName(),
-            $this->isFqcnFormTypeRequired()
+            $this->isFqcnFormTypePossible()
                 ? 'FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Type\BetweenType'
                 : 'datasource_between',
             null,
@@ -285,8 +279,8 @@ class FormFieldExtension extends FieldAbstractExtension
     }
 
     /**
-     * @param \Symfony\Component\Form\FormInterface $form
-     * @param \FSi\Component\DataSource\Field\FieldTypeInterface $field
+     * @param FormInterface $form
+     * @param FieldTypeInterface $field
      * @param array $options
      */
     protected function buildIsNullComparisonForm(FormInterface $form, FieldTypeInterface $field, $options = array())
@@ -316,7 +310,7 @@ class FormFieldExtension extends FieldAbstractExtension
         $options = array_merge($defaultOptions, $options);
         $form->add(
             $field->getName(),
-            $this->isFqcnFormTypeRequired()
+            $this->isFqcnFormTypePossible()
                 ? 'Symfony\Component\Form\Extension\Core\Type\ChoiceType'
                 : 'choice',
             $options
@@ -324,8 +318,8 @@ class FormFieldExtension extends FieldAbstractExtension
     }
 
     /**
-     * @param \Symfony\Component\Form\FormInterface $form
-     * @param \FSi\Component\DataSource\Field\FieldTypeInterface $field
+     * @param FormInterface $form
+     * @param FieldTypeInterface $field
      * @param array $options
      */
     protected function buildBooleanForm(FormInterface $form, FieldTypeInterface $field, $options = array())
@@ -351,7 +345,7 @@ class FormFieldExtension extends FieldAbstractExtension
         $options = array_merge($defaultOptions, $options);
         $form->add(
             $field->getName(),
-            $this->isFqcnFormTypeRequired()
+            $this->isFqcnFormTypePossible()
                 ? 'Symfony\Component\Form\Extension\Core\Type\ChoiceType'
                 : 'choice',
             $options
@@ -359,7 +353,7 @@ class FormFieldExtension extends FieldAbstractExtension
     }
 
     /**
-     * @return \Symfony\Component\Form\FormFactory
+     * @return FormFactory
      */
     protected function getFormFactory()
     {
@@ -368,7 +362,7 @@ class FormFieldExtension extends FieldAbstractExtension
 
     private function getFieldFormType(FieldTypeInterface $field)
     {
-        if (!$this->isFqcnFormTypeRequired()) {
+        if (!$this->isFqcnFormTypePossible()) {
             return $field->getType();
         }
 
@@ -393,8 +387,11 @@ class FormFieldExtension extends FieldAbstractExtension
         }
     }
 
-    private function isFqcnFormTypeRequired()
+    /**
+     * @return bool
+     */
+    private function isFqcnFormTypePossible()
     {
-        return version_compare(Kernel::VERSION, '3.0.0', '>=');
+        return class_exists('Symfony\Component\Form\Extension\Core\Type\RangeType');
     }
 }

@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class DependencyInjectionExtension extends DataSourceAbstractExtension
 {
     /**
-     * @var \Symfony\Component\DependencyInjection\ContainerInterface
+     * @var ContainerInterface
      */
     protected $container;
 
@@ -33,7 +33,7 @@ class DependencyInjectionExtension extends DataSourceAbstractExtension
     protected $subscriberServiceIds;
 
     /**
-     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+     * @param ContainerInterface $container
      * @param array $driverExtensionServiceIds
      * @param array $subscriberServiceIds
      */

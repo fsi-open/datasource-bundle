@@ -10,6 +10,7 @@
 namespace FSi\Bundle\DataSourceBundle\Tests\Extension\Symfony;
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Driver\DriverExtension;
 use FSi\Bundle\DataSourceBundle\Tests\Fixtures\TestManagerRegistry;
@@ -40,45 +41,6 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
         if (!class_exists('Doctrine\ORM\EntityManager')) {
             $this->markTestSkipped('Doctrine ORM needed!');
         }
-    }
-
-    /**
-     * Returns mock of FormFactory.
-     *
-     * @return object
-     */
-    private function getFormFactory()
-    {
-        //The connection configuration.
-        $dbParams = array(
-            'driver' => 'pdo_sqlite',
-            'memory' => true,
-        );
-
-        $config = Setup::createAnnotationMetadataConfiguration(array(__DIR__ . '/../../Fixtures'), true, null, null, false);
-        $em = EntityManager::create($dbParams, $config);
-        $tool = new \Doctrine\ORM\Tools\SchemaTool($em);
-        $classes = array(
-            $em->getClassMetadata('FSi\Bundle\DataSourceBundle\Tests\Fixtures\News'),
-        );
-        $tool->createSchema($classes);
-
-        if (version_compare(Kernel::VERSION, '3.0.0', '>=')) {
-            $tokenManager = new CsrfTokenManager();
-        } else {
-            $tokenManager = new DefaultCsrfProvider('tests');
-        }
-
-        $typeFactory = new Form\ResolvedFormTypeFactory();
-        $registry = new Form\FormRegistry(
-            array(
-                new Form\Extension\Core\CoreExtension(),
-                new Form\Extension\Csrf\CsrfExtension($tokenManager),
-                new DoctrineOrmExtension(new TestManagerRegistry($em)),
-            ),
-            $typeFactory
-        );
-        return new Form\FormFactory($registry, $typeFactory);
     }
 
     /**
@@ -175,5 +137,50 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
         foreach ($extensions as $ext) {
             $ext->postBuildView($args);
         }
+    }
+
+    /**
+     * @return Form\FormFactory
+     */
+    private function getFormFactory()
+    {
+        if (version_compare(Kernel::VERSION, '3.0.0', '>=')) {
+            $tokenManager = new CsrfTokenManager();
+        } else {
+            $tokenManager = new DefaultCsrfProvider('tests');
+        }
+
+        $typeFactory = new Form\ResolvedFormTypeFactory();
+        $registry = new Form\FormRegistry(
+            array(
+                new Form\Extension\Core\CoreExtension(),
+                new Form\Extension\Csrf\CsrfExtension($tokenManager),
+                new DoctrineOrmExtension(new TestManagerRegistry($this->getEntityManager())),
+            ),
+            $typeFactory
+        );
+
+        return new Form\FormFactory($registry, $typeFactory);
+    }
+
+    /**
+     * @return EntityManager
+     */
+    private function getEntityManager()
+    {
+        $dbParams = array(
+            'driver' => 'pdo_sqlite',
+            'memory' => true,
+        );
+
+        $config = Setup::createAnnotationMetadataConfiguration(array(__DIR__ . '/../../Fixtures'), true, null, null, false);
+        $em = EntityManager::create($dbParams, $config);
+        $tool = new SchemaTool($em);
+        $classes = array(
+            $em->getClassMetadata('FSi\Bundle\DataSourceBundle\Tests\Fixtures\News'),
+        );
+        $tool->createSchema($classes);
+
+        return $em;
     }
 }

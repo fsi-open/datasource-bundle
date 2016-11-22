@@ -20,7 +20,7 @@ use Symfony\Component\Translation\TranslatorInterface;
 class DriverExtension extends DriverAbstractExtension
 {
     /**
-     * @var \Symfony\Component\Form\FormFactory
+     * @var FormFactory
      */
     private $formFactory;
 
@@ -30,7 +30,7 @@ class DriverExtension extends DriverAbstractExtension
     private $translator;
 
     /**
-     * @param \Symfony\Component\Form\FormFactory $formFactory
+     * @param FormFactory $formFactory
      */
     public function __construct(FormFactory $formFactory, TranslatorInterface $translator)
     {

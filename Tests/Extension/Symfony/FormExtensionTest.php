@@ -26,6 +26,7 @@ use Symfony\Component\Security\Csrf\CsrfTokenManager;
 use FSi\Component\DataSource\DataSourceInterface;
 use FSi\Component\DataSource\Event\FieldEvent;
 use FSi\Component\DataSource\Event\DataSourceEvent\ViewEventArgs;
+use Symfony\Component\Translation\TranslatorInterface;
 
 /**
  * Tests for Symfony Form Extension.
@@ -78,34 +79,6 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         if (!class_exists('Symfony\Component\Form\Form')) {
             $this->markTestSkipped('Symfony Form needed!');
         }
-    }
-
-    /**
-     * Returns mock of FormFactory.
-     *
-     * @return object
-     */
-    private function getFormFactory()
-    {
-        $typeFactory = new Form\ResolvedFormTypeFactory();
-        $typeFactory->createResolvedType(new BetweenType(), array());
-
-        if (version_compare(Kernel::VERSION, '3.0.0', '>=')) {
-            $tokenManager = new CsrfTokenManager();
-        } else {
-            $tokenManager = new DefaultCsrfProvider('tests');
-        }
-
-        $registry = new Form\FormRegistry(
-            array(
-                new TestForm\Extension\TestCore\TestCoreExtension(),
-                new Form\Extension\Core\CoreExtension(),
-                new Form\Extension\Csrf\CsrfExtension($tokenManager),
-                new DatasourceExtension()
-            ),
-            $typeFactory
-        );
-        return new Form\FormFactory($registry, $typeFactory);
     }
 
     /**
@@ -280,9 +253,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         $field
             ->expects($this->any())
             ->method('hasOption')
-            ->will($this->returnValue(false)/*$this->returnCallback(function($option) use ($type) {
-                return (($type == 'number') && ($option =='form_type'));
-            })*/)
+            ->will($this->returnValue(false))
         ;
 
         $field
@@ -292,12 +263,6 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                 switch ($option) {
                     case 'form_filter':
                         return true;
-                    case 'form_type':
-/*                        if ($type == 'number') {
-                            return 'text';
-                        } else {*/
-                            return null;
-//                        }
                     case 'form_from_options':
                     case 'form_to_options':
                     case 'form_options':
@@ -374,26 +339,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
     public function testFormFields($type, $comparison, $expected)
     {
         $formFactory = $this->getFormFactory();
-        $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
-        $translator->expects($this->any())
-            ->method('trans')
-            ->will($this->returnCallback(function ($id, array $params, $translation_domain) {
-                if ($translation_domain != 'DataSourceBundle') {
-                    throw new \RuntimeException(sprintf('Unknown translation domain %s', $translation_domain));
-                }
-                switch ($id) {
-                    case 'datasource.form.choices.is_null':
-                        return 'is_null_translated';
-                    case 'datasource.form.choices.is_not_null':
-                        return 'is_not_null_translated';
-                    case 'datasource.form.choices.yes':
-                        return 'yes_translated';
-                    case 'datasource.form.choices.no':
-                        return 'no_translated';
-                    default:
-                        throw new \RuntimeException(sprintf('Unknown translation id %s', $id));
-                }
-            }));
+        $translator = $this->getTranslator();
         $extension = new DriverExtension($formFactory, $translator);
         $field = $this->getMock('FSi\Component\DataSource\Field\FieldTypeInterface');
         $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
@@ -442,21 +388,19 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             ->method('getOption')
             ->will($this->returnCallback(function($option) use ($type) {
                 switch ($option) {
-                    case 'form_null_value':
-                        return 'empty';
-
-                    case 'form_not_null_value':
-                        return 'not empty';
-
                     case 'form_filter':
                         return true;
 
                     case 'form_type':
-/*                        if ($type == 'number') {
-                            return 'text';
-                        } else {*/
+                        if ($type == 'number') {
+                            if (class_exists('Symfony\Component\Form\Extension\Core\Type\RangeType')) {
+                                return 'Symfony\Component\Form\Extension\Core\Type\TextType';
+                            } else {
+                                return 'text';
+                            }
+                        } else {
                             return null;
-//                        }
+                        }
 
                     case 'form_from_options':
                     case 'form_to_options':
@@ -496,31 +440,13 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             );
         }
     }
+
     public function testBuildBooleanFormWhenOptionsProvided()
     {
         $formFactory = $this->getMockBuilder('Symfony\Component\Form\FormFactory')
             ->disableOriginalConstructor()
             ->getMock();
-        $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
-        $translator->expects($this->any())
-            ->method('trans')
-            ->will($this->returnCallback(function ($id, array $params, $translation_domain) {
-                if ($translation_domain != 'DataSourceBundle') {
-                    throw new \RuntimeException(sprintf('Unknown translation domain %s', $translation_domain));
-                }
-                switch ($id) {
-                    case 'datasource.form.choices.is_null':
-                        return 'is_null_translated';
-                    case 'datasource.form.choices.is_not_null':
-                        return 'is_not_null_translated';
-                    case 'datasource.form.choices.yes':
-                        return 'yes_translated';
-                    case 'datasource.form.choices.no':
-                        return 'no_translated';
-                    default:
-                        throw new \RuntimeException(sprintf('Unknown translation id %s', $id));
-                }
-            }));
+        $translator = $this->getTranslator();
 
         $formFieldExtension = new FormFieldExtension($formFactory, $translator);
 
@@ -578,33 +504,13 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             $options
         );
     }
-
     public function testBuildBooleanFormWhenOptionsNotProvided()
     {
         $formFactory = $this->getMockBuilder('Symfony\Component\Form\FormFactory')
             ->disableOriginalConstructor()
             ->getMock();
 
-        $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
-        $translator->expects($this->any())
-            ->method('trans')
-            ->will($this->returnCallback(function ($id, array $params, $translation_domain) {
-                if ($translation_domain != 'DataSourceBundle') {
-                    throw new \RuntimeException(sprintf('Unknown translation domain %s', $translation_domain));
-                }
-                switch ($id) {
-                    case 'datasource.form.choices.is_null':
-                        return 'is_null_translated';
-                    case 'datasource.form.choices.is_not_null':
-                        return 'is_not_null_translated';
-                    case 'datasource.form.choices.yes':
-                        return 'yes_translated';
-                    case 'datasource.form.choices.no':
-                        return 'no_translated';
-                    default:
-                        throw new \RuntimeException(sprintf('Unknown translation id %s', $id));
-                }
-            }));
+        $translator = $this->getTranslator();
 
         $formFieldExtension = new FormFieldExtension($formFactory, $translator);
 
@@ -657,5 +563,59 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             $field,
             $options
         );
+    }
+
+    /**
+     * @return Form\FormFactory
+     */
+    private function getFormFactory()
+    {
+        $typeFactory = new Form\ResolvedFormTypeFactory();
+        $typeFactory->createResolvedType(new BetweenType(), array());
+
+        if (class_exists('Symfony\Component\Security\Csrf\CsrfTokenManager')) {
+            $tokenManager = new CsrfTokenManager();
+        } else {
+            $tokenManager = new DefaultCsrfProvider('tests');
+        }
+
+        $registry = new Form\FormRegistry(
+            array(
+                new TestForm\Extension\TestCore\TestCoreExtension(),
+                new Form\Extension\Core\CoreExtension(),
+                new Form\Extension\Csrf\CsrfExtension($tokenManager),
+                new DatasourceExtension()
+            ),
+            $typeFactory
+        );
+        return new Form\FormFactory($registry, $typeFactory);
+    }
+
+    /**
+     * @return TranslatorInterface
+     */
+    private function getTranslator()
+    {
+        $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
+        $translator->expects($this->any())
+            ->method('trans')
+            ->will($this->returnCallback(function ($id, array $params, $translation_domain) {
+                if ($translation_domain != 'DataSourceBundle') {
+                    throw new \RuntimeException(sprintf('Unknown translation domain %s', $translation_domain));
+                }
+                switch ($id) {
+                    case 'datasource.form.choices.is_null':
+                        return 'is_null_translated';
+                    case 'datasource.form.choices.is_not_null':
+                        return 'is_not_null_translated';
+                    case 'datasource.form.choices.yes':
+                        return 'yes_translated';
+                    case 'datasource.form.choices.no':
+                        return 'no_translated';
+                    default:
+                        throw new \RuntimeException(sprintf('Unknown translation id %s', $id));
+                }
+            }));
+        return $translator;
     }
 }
