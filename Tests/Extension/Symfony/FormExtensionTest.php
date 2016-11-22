@@ -473,7 +473,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             ),
             'multiple' => false,
         );
-        if (method_exists('Symfony\Component\Form\FormTypeInterface', 'configureOptions')) {
+        if ($this->isSymfonyForm27()) {
             $expectedOptions['placeholder'] = '';
         } else {
             $expectedOptions['empty_value'] = '';
@@ -537,7 +537,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             ),
             'multiple' => false,
         );
-        if (method_exists('Symfony\Component\Form\FormTypeInterface', 'configureOptions')) {
+        if ($this->isSymfonyForm27()) {
             $expectedOptions['choices'] = array_flip($expectedOptions['choices']);
             $expectedOptions['placeholder'] = '';
         } else {
@@ -573,7 +573,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         $typeFactory = new Form\ResolvedFormTypeFactory();
         $typeFactory->createResolvedType(new BetweenType(), array());
 
-        if (class_exists('Symfony\Component\Security\Csrf\CsrfTokenManager')) {
+        if ($this->isSymfonyForm27()) {
             $tokenManager = new CsrfTokenManager();
         } else {
             $tokenManager = new DefaultCsrfProvider('tests');
@@ -617,5 +617,13 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                 }
             }));
         return $translator;
+    }
+
+    /**
+     * @return bool
+     */
+    private function isSymfonyForm27()
+    {
+        return method_exists('Symfony\Component\Form\FormTypeInterface', 'configureOptions');
     }
 }
