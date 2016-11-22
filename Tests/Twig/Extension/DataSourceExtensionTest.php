@@ -10,7 +10,6 @@
 namespace FSi\Bundle\DataSourceBundle\Tests\Twig\Extension;
 
 use FSi\Bundle\DataSourceBundle\Twig\Extension\DataSourceExtension;
-use FSi\Component\DataSource\DataSourceViewInterface;
 use Symfony\Bridge\Twig\Form\TwigRenderer;
 use Symfony\Bridge\Twig\Form\TwigRendererEngine;
 use Symfony\Bridge\Twig\Extension\FormExtension;
