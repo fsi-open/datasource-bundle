@@ -83,9 +83,7 @@ class DriverExtension extends DriverAbstractExtension
             throw new \InvalidArgumentException(sprintf('The field type "%s" is not registered within the service container.', $type));
         }
 
-        $type = $this->container->get($this->fieldServiceIds[$type]);
-
-        return $type;
+        return $this->container->get($this->fieldServiceIds[$type]);
     }
 
     /**
@@ -93,8 +91,8 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function hasFieldTypeExtensions($type)
     {
-        foreach ($this->fieldExtensionServiceIds as $alias => $extensionName) {
-            $extension = $this->container->get($this->fieldExtensionServiceIds[$alias]);
+        foreach ($this->fieldExtensionServiceIds as $extensionName) {
+            $extension = $this->container->get($extensionName);
             $types = $extension->getExtendedFieldTypes();
             if (in_array($type, $types)) {
                 return true;
@@ -108,17 +106,17 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function getFieldTypeExtensions($type)
     {
-        $fieldExtension = array();
+        $fieldExtensions = array();
 
-        foreach ($this->fieldExtensionServiceIds as $alias => $extensionName) {
-            $extension = $this->container->get($this->fieldExtensionServiceIds[$alias]);
+        foreach ($this->fieldExtensionServiceIds as $extensionName) {
+            $extension = $this->container->get($extensionName);
             $types = $extension->getExtendedFieldTypes();
             if (in_array($type, $types)) {
-                $fieldExtension[] = $extension;
+                $fieldExtensions[] = $extension;
             }
         }
 
-        return $fieldExtension;
+        return $fieldExtensions;
     }
 
     /**
@@ -128,9 +126,8 @@ class DriverExtension extends DriverAbstractExtension
     {
         $subscribers = array();
 
-        foreach ($this->subscriberServiceIds as $alias => $subscriberName) {
-            $subscriber = $this->container->get($this->subscriberServiceIds[$alias]);
-            $subscribers[] = $subscriber;
+        foreach ($this->subscriberServiceIds as $subscriberName) {
+            $subscribers[] = $this->container->get($subscriberName);
         }
 
         return $subscribers;

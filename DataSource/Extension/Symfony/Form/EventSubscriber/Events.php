@@ -43,7 +43,8 @@ class Events implements EventSubscriberInterface
         foreach ($fieldViews as $fieldView) {
             $field = $event->getDataSource()->getField($fieldView->getName());
             if ($field->hasOption('form_order')) {
-                if (($order = $field->getOption('form_order')) >= 0) {
+                $order = $field->getOption('form_order');
+                if ($order >= 0) {
                     $positive[$field->getName()] = $order;
                 } else {
                     $negative[$field->getName()] = $order;

@@ -115,12 +115,13 @@ class FormFieldExtension extends FieldAbstractExtension
     public function preBindParameter(FieldEvent\ParameterEventArgs $event)
     {
         $field = $event->getField();
-        $field_oid = spl_object_hash($field);
-        $parameter = $event->getParameter();
-
-        if (!$form = $this->getForm($field)) {
+        $form = $this->getForm($field);
+        if ($form === null) {
             return;
         }
+
+        $field_oid = spl_object_hash($field);
+        $parameter = $event->getParameter();
 
         if ($form->isSubmitted()) {
             $form = $this->getForm($field, true);
@@ -132,21 +133,17 @@ class FormFieldExtension extends FieldAbstractExtension
             return;
         }
 
-        if (isset($parameter[$datasourceName][DataSourceInterface::PARAMETER_FIELDS][$field->getName()])) {
-            $dataToBind = array(
-                DataSourceInterface::PARAMETER_FIELDS => array(
-                    $field->getName() => $parameter[$datasourceName][DataSourceInterface::PARAMETER_FIELDS][$field->getName()],
-                ),
-            );
-            $this->parameters[$field_oid] = $parameter[$datasourceName][DataSourceInterface::PARAMETER_FIELDS][$field->getName()];
+        if ($this->hasParameterValue($parameter, $field)) {
+            $this->parameters[$field_oid] = $this->getParameterValue($parameter, $field);
 
-            $form->submit($dataToBind);
-            $data = $form->getData();
+            $fieldForm = $form->get(DataSourceInterface::PARAMETER_FIELDS)->get($field->getName());
+            $fieldForm->submit($this->parameters[$field_oid]);
+            $data = $fieldForm->getData();
 
-            if (isset($data[DataSourceInterface::PARAMETER_FIELDS][$field->getName()])) {
-                $parameter[$datasourceName][DataSourceInterface::PARAMETER_FIELDS][$field->getName()] = $data[DataSourceInterface::PARAMETER_FIELDS][$field->getName()];
+            if ($data !== null) {
+                $this->setParameterValue($parameter, $field, $data);
             } else {
-                unset($parameter[$datasourceName][DataSourceInterface::PARAMETER_FIELDS][$field->getName()]);
+                $this->clearParameterValue($parameter, $field);
             }
 
             $event->setParameter($parameter);
@@ -161,15 +158,9 @@ class FormFieldExtension extends FieldAbstractExtension
         $field = $event->getField();
         $field_oid = spl_object_hash($field);
 
-        $datasourceName = $field->getDataSource() ? $field->getDataSource()->getName() : null;
         if (isset($this->parameters[$field_oid])) {
-            $parameters = array(
-                $datasourceName => array(
-                    DataSourceInterface::PARAMETER_FIELDS => array(
-                        $field->getName() => $this->parameters[$field_oid]
-                    )
-                )
-            );
+            $parameters = array();
+            $this->setParameterValue($parameters, $field, $this->parameters[$field_oid]);
             $event->setParameter($parameters);
         }
     }
@@ -179,16 +170,18 @@ class FormFieldExtension extends FieldAbstractExtension
      *
      * @param FieldTypeInterface $field
      * @param bool $force
-     * @return FormInterface
+     * @return FormInterface|null
      */
     protected function getForm(FieldTypeInterface $field, $force = false)
     {
-        if (!$datasource = $field->getDataSource()) {
-            return;
+        $datasource = $field->getDataSource();
+
+        if ($datasource === null) {
+            return null;
         }
 
         if (!$field->getOption('form_filter')) {
-            return;
+            return null;
         }
 
         $field_oid = spl_object_hash($field);
@@ -290,21 +283,19 @@ class FormFieldExtension extends FieldAbstractExtension
                  $this->translator->trans('datasource.form.choices.is_null', array(), 'DataSourceBundle') => 'null',
                  $this->translator->trans('datasource.form.choices.is_not_null', array(), 'DataSourceBundle') => 'no_null'
             ),
-            'multiple' => false,
         );
 
-        if (method_exists('Symfony\Component\Form\FormTypeInterface', 'configureOptions')) {
+        if ($this->isSymfonyForm27()) {
             $defaultOptions['placeholder'] = '';
         } else {
-            $defaultOptions['choices'] = array_flip($defaultOptions['choices']);
             $defaultOptions['empty_value'] = '';
-        }
-
-        if (isset($options['choices'])) {
-            $options['choices'] = array_merge(
-                $defaultOptions['choices'],
-                array_intersect_key($options['choices'], $defaultOptions['choices'])
-            );
+            $defaultOptions['choices'] = array_flip($defaultOptions['choices']);
+            if (isset($options['choices'])) {
+                $options['choices'] = array_merge(
+                    $defaultOptions['choices'],
+                    array_intersect_key($options['choices'], $defaultOptions['choices'])
+                );
+            }
         }
 
         $options = array_merge($defaultOptions, $options);
@@ -329,17 +320,16 @@ class FormFieldExtension extends FieldAbstractExtension
                 $this->translator->trans('datasource.form.choices.yes', array(), 'DataSourceBundle') => '1',
                 $this->translator->trans('datasource.form.choices.no', array(), 'DataSourceBundle') => '0',
             ),
-            'multiple' => false,
         );
 
-        if (method_exists('Symfony\Component\Form\FormTypeInterface', 'configureOptions')) {
+        if ($this->isSymfonyForm27()) {
             $defaultOptions['placeholder'] = '';
         } else {
+            $defaultOptions['empty_value'] = '';
             $defaultOptions['choices'] = array_flip($defaultOptions['choices']);
             if (isset($options['choices'])) {
                 $options['choices'] = array_intersect_key($options['choices'], $defaultOptions['choices']);
             }
-            $defaultOptions['empty_value'] = '';
         }
 
         $options = array_merge($defaultOptions, $options);
@@ -393,5 +383,54 @@ class FormFieldExtension extends FieldAbstractExtension
     private function isFqcnFormTypePossible()
     {
         return class_exists('Symfony\Component\Form\Extension\Core\Type\RangeType');
+    }
+
+    /**
+     * @param array $array
+     * @param FieldTypeInterface $field
+     * @return bool
+     */
+    private function hasParameterValue(array $array, FieldTypeInterface $field)
+    {
+        return isset(
+            $array[$field->getDataSource()->getName()][DataSourceInterface::PARAMETER_FIELDS][$field->getName()]
+        );
+    }
+
+    /**
+     * @param array $array
+     * @param FieldTypeInterface $field
+     * @return mixed
+     */
+    private function getParameterValue(array $array, FieldTypeInterface $field)
+    {
+        return $array[$field->getDataSource()->getName()][DataSourceInterface::PARAMETER_FIELDS][$field->getName()];
+    }
+
+    /**
+     * @param array &$array
+     * @param FieldTypeInterface $field
+     * @param mixed $value
+     */
+    private function setParameterValue(array &$array, FieldTypeInterface $field, $value)
+    {
+        $array[$field->getDataSource()->getName()][DataSourceInterface::PARAMETER_FIELDS][$field->getName()] = $value;
+    }
+
+    /**
+     * @param array &$array
+     * @param FieldTypeInterface $field
+     */
+    private function clearParameterValue(array &$array, FieldTypeInterface $field)
+    {
+        unset($array[$field->getDataSource()->getName()][DataSourceInterface::PARAMETER_FIELDS][$field->getName()]);
+    }
+
+    /**
+     * @return bool
+     */
+    private function isSymfonyForm27()
+    {
+        return method_exists('Symfony\Component\Form\FormTypeInterface', 'configureOptions');
     }
 }

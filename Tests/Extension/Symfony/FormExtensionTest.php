@@ -471,7 +471,6 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                 '1' => 'tak',
                 '0' => 'nie',
             ),
-            'multiple' => false,
         );
         if ($this->isSymfonyForm27()) {
             $expectedOptions['placeholder'] = '';
@@ -535,7 +534,6 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                 '1' => 'yes_translated',
                 '0' => 'no_translated',
             ),
-            'multiple' => false,
         );
         if ($this->isSymfonyForm27()) {
             $expectedOptions['choices'] = array_flip($expectedOptions['choices']);
