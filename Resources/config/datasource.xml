@@ -8,7 +8,7 @@
         <parameter key="datasource.factory.class">FSi\Component\DataSource\DataSourceFactory</parameter>
         <parameter key="datasource.extension.class">FSi\Component\DataSource\Extension\Symfony\DependencyInjection\DependencyInjectionExtension</parameter>
         <parameter key="datasource.driver.factory.manager.class">FSi\Component\DataSource\Driver\DriverFactoryManager</parameter>
-        <parameter key="datasource.driver.extension.class">FSi\Component\DataSource\Extension\Symfony\DependencyInjection\Driver\DriverExtension</parameter>
+        <parameter key="datasource.driver.extension.class">FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\DriverExtension</parameter>
         <parameter key="datasource.extension.form.type.between.class">FSi\Component\DataSource\Extension\Symfony\Form\Type\BetweenType</parameter>
     </parameters>
 
@@ -57,12 +57,12 @@
         </service>
 
         <!-- Symfony/CoreExtension -->
-        <service id="datasource.subscriber.symfonyrequest" class="FSi\Component\DataSource\Extension\Symfony\Core\EventSubscriber\BindParameters">
+        <service id="datasource.subscriber.symfonyrequest" class="FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Core\EventSubscriber\BindParameters">
             <tag name="datasource.subscriber" alias="symfonyrequest" />
         </service>
 
         <!-- Symfony/FormExtension -->
-        <service id="datasource.subscriber.symfonyform" class="FSi\Component\DataSource\Extension\Symfony\Form\EventSubscriber\Events">
+        <service id="datasource.subscriber.symfonyform" class="FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\EventSubscriber\Events">
             <tag name="datasource.subscriber" alias="symfonyform" />
         </service>
     </services>
