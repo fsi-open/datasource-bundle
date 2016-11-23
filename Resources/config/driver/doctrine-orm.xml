@@ -77,6 +77,7 @@
         <service id="datasource.driver.doctrine_orm.field.subscriber.symfonyform" class="FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Field\FormFieldExtension">
             <tag name="datasource.driver.doctrine-orm.field.subscriber" alias="symfonyform" />
             <argument type="service" id="form.factory" />
+            <argument type="service" id="translator" />
         </service>
     </services>
 </container>
