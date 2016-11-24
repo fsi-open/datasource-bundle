@@ -443,124 +443,115 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
 
     public function testBuildBooleanFormWhenOptionsProvided()
     {
-        $formFactory = $this->getMockBuilder('Symfony\Component\Form\FormFactory')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $formFactory = $this->getFormFactory();
         $translator = $this->getTranslator();
-
         $formFieldExtension = new FormFieldExtension($formFactory, $translator);
-
-        $method = new ReflectionMethod(
-            'FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Field\FormFieldExtension',
-            'buildBooleanForm'
-        );
-        $method->setAccessible(true);
-
         $field = $this->getMock('FSi\Component\DataSource\Driver\Collection\Extension\Core\Field\Boolean');
+        $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
+        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', array(), array($driver));
 
-        $field->expects($this->once())
-            ->method('getname')
+        $field->expects($this->atLeastOnce())
+            ->method('getName')
             ->will($this->returnValue('name'));
 
-        $form = $this->getMockBuilder('Symfony\Component\Form\Form')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $field->expects($this->atLeastOnce())
+            ->method('getDataSource')
+            ->will($this->returnValue($datasource));
 
-        $expectedOptions = array(
-            'choices' => array(
-                '1' => 'tak',
-                '0' => 'nie',
-            ),
-        );
-        if ($this->isSymfonyForm27()) {
-            $expectedOptions['placeholder'] = '';
-        } else {
-            $expectedOptions['empty_value'] = '';
-        }
+        $field->expects($this->atLeastOnce())
+            ->method('getType')
+            ->will($this->returnValue('boolean'));
 
-        $form->expects($this->exactly(1))->method('add')
-            ->with(
-                $this->equalTo('name'),
-                $this->equalTo(
-                    version_compare(Kernel::VERSION, '3.0.0', '>=')
-                        ? 'Symfony\Component\Form\Extension\Core\Type\ChoiceType'
-                        : 'choice'
-                ),
-                $this->equalTo($expectedOptions)
-            );
+        $field->expects($this->atLeastOnce())
+            ->method('getOption')
+            ->will($this->returnCallback(function($option) {
+                switch ($option) {
+                    case 'form_filter':
+                        return true;
+                    case 'form_options':
+                        return array(
+                            'choices' => $this->isSymfonyForm27()
+                                ? array(
+                                    'tak' => '1',
+                                    'nie' => '0',
+                                ) : array(
+                                    '1' => 'tak',
+                                    '0' => 'nie',
+                                )
+                        );
+                }
+            }));
 
-        $options =  array(
-            'choices' => array(
-                '1' => 'tak',
-                '0' => 'nie'
-            )
-        );
+        $parameters = array('datasource' => array(DataSourceInterface::PARAMETER_FIELDS => array('name' =>
+            'null'
+        )));
 
-        $method->invoke(
-            $formFieldExtension,
-            $form,
-            $field,
-            $options
-        );
+        $args = new FieldEvent\ParameterEventArgs($field, $parameters);
+
+        $view = new FieldView($field);
+        $viewEventArgs = new FieldEvent\ViewEventArgs($field, $view);
+
+        $formFieldExtension->preBindParameter($args);
+        $formFieldExtension->postBuildView($viewEventArgs);
+
+        $form = $viewEventArgs->getView()->getAttribute('form');
+        $choices = $form['fields']['name']->vars['choices'];
+        $this->assertEquals($choices[0]->value, '1');
+        $this->assertEquals($choices[0]->label, 'tak');
+        $this->assertEquals($choices[1]->value, '0');
+        $this->assertEquals($choices[1]->label, 'nie');
     }
+
     public function testBuildBooleanFormWhenOptionsNotProvided()
     {
-        $formFactory = $this->getMockBuilder('Symfony\Component\Form\FormFactory')
-            ->disableOriginalConstructor()
-            ->getMock();
-
+        $formFactory = $this->getFormFactory();
         $translator = $this->getTranslator();
-
         $formFieldExtension = new FormFieldExtension($formFactory, $translator);
-
-        $method = new ReflectionMethod(
-            'FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Field\FormFieldExtension',
-            'buildBooleanForm'
-        );
-        $method->setAccessible(true);
-
         $field = $this->getMock('FSi\Component\DataSource\Driver\Collection\Extension\Core\Field\Boolean');
+        $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
+        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', array(), array($driver));
 
-        $field->expects($this->once())
-            ->method('getname')
+        $field->expects($this->atLeastOnce())
+            ->method('getName')
             ->will($this->returnValue('name'));
 
-        $form = $this->getMockBuilder('Symfony\Component\Form\Form')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $field->expects($this->atLeastOnce())
+            ->method('getDataSource')
+            ->will($this->returnValue($datasource));
 
-        $expectedOptions = array(
-            'choices' => array(
-                '1' => 'yes_translated',
-                '0' => 'no_translated',
-            ),
-        );
-        if ($this->isSymfonyForm27()) {
-            $expectedOptions['choices'] = array_flip($expectedOptions['choices']);
-            $expectedOptions['placeholder'] = '';
-        } else {
-            $expectedOptions['empty_value'] = '';
-        }
+        $field->expects($this->atLeastOnce())
+            ->method('getType')
+            ->will($this->returnValue('boolean'));
 
-        $form->expects($this->exactly(1))->method('add')
-            ->with(
-                $this->equalTo('name'),
-                $this->equalTo(
-                    version_compare(Kernel::VERSION, '3.0.0', '>=')
-                        ? 'Symfony\Component\Form\Extension\Core\Type\ChoiceType'
-                        : 'choice'
-                ),
-                $this->equalTo($expectedOptions)
-            );
+        $field->expects($this->atLeastOnce())
+            ->method('getOption')
+            ->will($this->returnCallback(function($option) {
+                switch ($option) {
+                    case 'form_filter':
+                        return true;
+                    case 'form_options':
+                        return array();
+                }
+            }));
 
-        $options =  array();
+        $parameters = array('datasource' => array(DataSourceInterface::PARAMETER_FIELDS => array('name' =>
+            'null'
+        )));
 
-        $method->invoke(
-            $formFieldExtension,
-            $form,
-            $field,
-            $options
-        );
+        $args = new FieldEvent\ParameterEventArgs($field, $parameters);
+
+        $view = new FieldView($field);
+        $viewEventArgs = new FieldEvent\ViewEventArgs($field, $view);
+
+        $formFieldExtension->preBindParameter($args);
+        $formFieldExtension->postBuildView($viewEventArgs);
+
+        $form = $viewEventArgs->getView()->getAttribute('form');
+        $choices = $form['fields']['name']->vars['choices'];
+        $this->assertEquals($choices[0]->value, '1');
+        $this->assertEquals($choices[0]->label, 'yes_translated');
+        $this->assertEquals($choices[1]->value, '0');
+        $this->assertEquals($choices[1]->label, 'no_translated');
     }
 
     /**

@@ -220,15 +220,17 @@ class FormFieldExtension extends FieldAbstractExtension
                 break;
 
             default:
-                $type = $field->hasOption('form_type')
-                    ? $field->getOption('form_type')
-                    : $this->getFieldFormType($field);
 
                 switch ($field->getType()) {
                     case 'boolean':
                         $this->buildBooleanForm($fieldsForm, $field, $options);
                         break;
+
                     default:
+                        $type = $field->hasOption('form_type')
+                            ? $field->getOption('form_type')
+                            : $this->getFieldFormType($field);
+
                         $fieldsForm->add($field->getName(), $type, $options);
                 }
         }
