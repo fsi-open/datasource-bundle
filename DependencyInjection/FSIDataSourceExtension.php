@@ -9,10 +9,10 @@
 
 namespace FSi\Bundle\DataSourceBundle\DependencyInjection;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 class FSIDataSourceExtension extends Extension
 {
@@ -54,6 +54,9 @@ class FSIDataSourceExtension extends Extension
         $loader->load('driver/doctrine.xml');
         if (class_exists('FSi\Component\DataSource\Driver\Doctrine\ORM\DoctrineDriver')) {
             $loader->load('driver/doctrine-orm.xml');
+        }
+        if (class_exists('FSi\Component\DataSource\Driver\Doctrine\DBAL\DBALDriver')) {
+            $loader->load('driver/doctrine-dbal.xml');
         }
     }
 }
