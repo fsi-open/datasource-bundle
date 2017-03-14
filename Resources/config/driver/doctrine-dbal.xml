@@ -61,7 +61,7 @@
         </service>
 
         <!-- OrderingExtension -->
-        <service id="datasource.driver.doctrine_dbal.subscriber.ordering" class="FSi\Component\DataSource\Extension\Core\Ordering\Driver\DoctrineExtension">
+        <service id="datasource.driver.doctrine_dbal.subscriber.ordering" class="FSi\Component\DataSource\Extension\Core\Ordering\Driver\DBALExtension">
             <tag name="datasource.driver.doctrine-dbal.subscriber" alias="ordering"/>
         </service>
         <service id="datasource.driver.doctrine_dbal.field.subscriber.ordering" class="FSi\Component\DataSource\Extension\Core\Ordering\Field\FieldExtension">
