@@ -308,11 +308,11 @@ class DataSourceExtension extends \Twig_Extension
             'translation_domain' => $options['translation_domain'],
             'vars' => array_merge($this->getVars($view), $vars),
         );
-        if ($current != 1) {
+        if ($current != 1 && isset($pagesParams[$current - 1])) {
             $viewData['prev'] = $current - 1;
             $viewData['prev_url'] = $this->getUrl($view, $options, $pagesParams[$current - 1]);
         }
-        if ($current != $pageCount) {
+        if ($current != $pageCount && isset($pagesParams[$current + 1])) {
             $viewData['next'] = $current + 1;
             $viewData['next_url'] = $this->getUrl($view, $options, $pagesParams[$current + 1]);
         }
