@@ -22,7 +22,6 @@ use Symfony\Component\HttpKernel\Kernel;
  */
 class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @var \Twig_Environment
      */
@@ -43,7 +42,7 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
 
         $twig = new \Twig_Environment($loader);
         $twig->addExtension(new TranslationExtension(new StubTranslator()));
-        $twig->addExtension($this->getFormExtension($subPath === ''));
+        $twig->addExtension($this->getFormExtension($subPath !== ''));
         $twig->addGlobal('global_var', 'global_value');
         $this->twig = $twig;
 
