@@ -45,7 +45,6 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
         $twig->addExtension(new TranslationExtension(new StubTranslator()));
         $twig->addExtension($this->getFormExtension($subPath === ''));
         $twig->addGlobal('global_var', 'global_value');
-        // force initRuntime()
         $this->twig = $twig;
 
         $this->extension = new DataSourceExtension($this->getContainer(), 'datasource.html.twig');
@@ -58,18 +57,21 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
     public function testInitRuntimeShouldThrowExceptionBecauseNotExistingTheme()
     {
         $this->twig->addExtension(new DataSourceExtension($this->getContainer(), 'this_is_not_valid_path.html.twig'));
+        // force initRuntime()
         $this->twig->loadTemplate('datasource.html.twig');
     }
 
     public function testInitRuntimeWithValidPathToTheme()
     {
         $this->twig->addExtension($this->extension);
+        // force initRuntime()
         $this->twig->loadTemplate('datasource.html.twig');
     }
 
     public function testDataSourceFilterCount()
     {
         $this->twig->addExtension($this->extension);
+        // force initRuntime()
         $this->twig->loadTemplate('datasource.html.twig');
 
         $datasourceView = $this->getDataSourceView('datasource');
@@ -122,6 +124,7 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
     public function testDataSourceRenderBlock()
     {
         $this->twig->addExtension($this->extension);
+        // force initRuntime()
         $this->twig->loadTemplate('datasource.html.twig');
         $template = $this->getTemplateMock();
 
@@ -158,6 +161,7 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
     public function testDataSourceRenderBlockFromParent()
     {
         $this->twig->addExtension($this->extension);
+        // force initRuntime()
         $this->twig->loadTemplate('datasource.html.twig');
 
         $parent = $this->getTemplateMock();
