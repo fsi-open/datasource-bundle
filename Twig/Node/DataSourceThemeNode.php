@@ -25,7 +25,7 @@ class DataSourceThemeNode extends \Twig_Node
     {
         $compiler
             ->addDebugInfo($this)
-            ->write('$this->env->getExtension(\'datasource\')->setTheme(')
+            ->write('$this->env->getExtension(\'FSi\Bundle\DataSourceBundle\Twig\Extension\DataSourceExtension\')->setTheme(')
             ->subcompile($this->getNode('datasource'))
             ->raw(', ')
             ->subcompile($this->getNode('theme'))
