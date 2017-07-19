@@ -9,23 +9,24 @@
 
 namespace FSi\Bundle\DataSourceBundle\Tests\Extension\Symfony;
 
-use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Extension\DatasourceExtension;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\QueryBuilder;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Driver\DriverExtension;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\EventSubscriber\Events;
+use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Extension\DatasourceExtension;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Field\FormFieldExtension;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Type\BetweenType;
 use FSi\Bundle\DataSourceBundle\Tests\Fixtures\Form as TestForm;
+use FSi\Component\DataSource\DataSourceInterface;
+use FSi\Component\DataSource\Event\DataSourceEvent\ViewEventArgs;
+use FSi\Component\DataSource\Event\FieldEvent;
 use FSi\Component\DataSource\Field\FieldAbstractExtension;
 use FSi\Component\DataSource\Field\FieldView;
-use ReflectionMethod;
+use Symfony\Bridge\Doctrine\Form\DoctrineOrmExtension;
 use Symfony\Component\Form;
 use Symfony\Component\Form\Extension\Csrf\CsrfProvider\DefaultCsrfProvider;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
-use FSi\Component\DataSource\DataSourceInterface;
-use FSi\Component\DataSource\Event\FieldEvent;
-use FSi\Component\DataSource\Event\DataSourceEvent\ViewEventArgs;
 use Symfony\Component\Translation\TranslatorInterface;
 
 /**
@@ -60,7 +61,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             array('text', 'isNull', 'choice'),
             array('text', 'eq', 'text'),
             array('number', 'isNull', 'choice'),
-            array('number', 'eq', 'text'),
+            array('number', 'eq', 'number'),
             array('datetime', 'isNull', 'choice'),
             array('datetime', 'eq', 'datetime'),
             array('datetime', 'between', 'datasource_between'),
@@ -372,9 +373,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         $field
             ->expects($this->any())
             ->method('hasOption')
-            ->will($this->returnCallback(function($option) use ($type) {
-                return (($type == 'number') && ($option =='form_type'));
-            }))
+            ->will($this->returnValue(false))
         ;
 
         $field
@@ -392,15 +391,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                         return true;
 
                     case 'form_type':
-                        if ($type == 'number') {
-                            if (class_exists('Symfony\Component\Form\Extension\Core\Type\RangeType')) {
-                                return 'Symfony\Component\Form\Extension\Core\Type\TextType';
-                            } else {
-                                return 'text';
-                            }
-                        } else {
-                            return null;
-                        }
+                        return null;
 
                     case 'form_from_options':
                     case 'form_to_options':
@@ -552,6 +543,89 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($choices[0]->label, 'yes_translated');
         $this->assertEquals($choices[1]->value, '0');
         $this->assertEquals($choices[1]->label, 'no_translated');
+    }
+
+    /**
+     * @dataProvider getDatasourceFieldTypes
+     */
+    public function testCreateDataSourceFieldWithCustomFormType(
+        $dataSourceFieldType,
+        $comparison = null
+    ) {
+        $formFactory = $this->getFormFactory();
+        $translator = $this->getTranslator();
+        $formFieldExtension = new FormFieldExtension($formFactory, $translator);
+        $field = $this->getMock('FSi\Component\DataSource\Field\FieldTypeInterface');
+        $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
+        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', array(), array($driver));
+
+        $field->expects($this->atLeastOnce())
+              ->method('getName')
+              ->will($this->returnValue('name'));
+
+        $field->expects($this->atLeastOnce())
+              ->method('getDataSource')
+              ->will($this->returnValue($datasource));
+
+        $field->expects($this->atLeastOnce())
+              ->method('getType')
+              ->will($this->returnValue($dataSourceFieldType));
+
+        $field->expects($this->atLeastOnce())
+              ->method('getComparison')
+              ->will($this->returnValue($comparison));
+
+        $options = array(
+            'form_filter' => true,
+            'form_options' => [],
+            'form_type' => $this->isSymfonyForm27()
+                ? 'Symfony\Component\Form\Extension\Core\Type\HiddenType'
+                : 'hidden',
+        );
+
+        $field->expects($this->atLeastOnce())
+              ->method('hasOption')
+              ->will($this->returnCallback(function($option) use ($options) {
+                  return isset($options[$option]);
+              }));
+
+        $field->expects($this->atLeastOnce())
+              ->method('getOption')
+              ->will($this->returnCallback(function($option) use ($options) {
+                  return $options[$option];
+              }));
+
+        $args = new FieldEvent\ParameterEventArgs($field, array(
+            'datasource' => array(DataSourceInterface::PARAMETER_FIELDS => array(
+                'name' => 'null'
+            ))
+        ));
+
+        $view = new FieldView($field);
+        $viewEventArgs = new FieldEvent\ViewEventArgs($field, $view);
+
+        $formFieldExtension->preBindParameter($args);
+        $formFieldExtension->postBuildView($viewEventArgs);
+
+        $form = $viewEventArgs->getView()->getAttribute('form');
+        $nameForm = $form['fields']['name'];
+        $this->assertEquals('hidden', $form['fields']['name']->vars['block_prefixes'][1]);
+    }
+
+    public function getDatasourceFieldTypes()
+    {
+        return [
+            [
+                'text',  //datasource field type
+                'isNull', //comparison
+            ],
+            ['text'],
+            ['number'],
+            ['date'],
+            ['time'],
+            ['datetime'],
+            ['boolean'],
+        ];
     }
 
     /**
