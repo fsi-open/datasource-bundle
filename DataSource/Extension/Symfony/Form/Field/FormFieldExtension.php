@@ -227,11 +227,7 @@ class FormFieldExtension extends FieldAbstractExtension
                         break;
 
                     default:
-                        $type = $field->hasOption('form_type')
-                            ? $field->getOption('form_type')
-                            : $this->getFieldFormType($field);
-
-                        $fieldsForm->add($field->getName(), $type, $options);
+                        $fieldsForm->add($field->getName(), $this->getFieldFormType($field), $options);
                 }
         }
 
@@ -263,10 +259,6 @@ class FormFieldExtension extends FieldAbstractExtension
         $toOptions = array_merge($options, $toOptions);
         $type = $this->getFieldFormType($field);
 
-        if ($field->hasOption('form_type')) {
-            $type = $field->getOption('form_type');
-        }
-
         $betweenBuilder->add('from', $type, $fromOptions);
         $betweenBuilder->add('to', $type, $toOptions);
 
@@ -280,6 +272,10 @@ class FormFieldExtension extends FieldAbstractExtension
      */
     protected function buildIsNullComparisonForm(FormInterface $form, FieldTypeInterface $field, $options = array())
     {
+        if ($field->hasOption('form_type')) {
+            return $form->add($field->getName(), $field->getOption('form_type'), $options);
+        }
+
         $defaultOptions = array(
             'choices' => array(
                  $this->translator->trans('datasource.form.choices.is_null', array(), 'DataSourceBundle') => 'null',
@@ -317,6 +313,10 @@ class FormFieldExtension extends FieldAbstractExtension
      */
     protected function buildBooleanForm(FormInterface $form, FieldTypeInterface $field, $options = array())
     {
+        if ($field->hasOption('form_type')) {
+            return $form->add($field->getName(), $field->getOption('form_type'), $options);
+        }
+
         $defaultOptions = array(
             'choices' => array(
                 $this->translator->trans('datasource.form.choices.yes', array(), 'DataSourceBundle') => '1',
@@ -354,11 +354,17 @@ class FormFieldExtension extends FieldAbstractExtension
 
     private function getFieldFormType(FieldTypeInterface $field)
     {
-        if (!$this->isFqcnFormTypePossible()) {
-            return $field->getType();
+        if ($field->hasOption('form_type')) {
+            return $field->getOption('form_type');
         }
 
-        switch ($field->getType()) {
+        $declaredType = $field->getType();
+
+        if (!$this->isFqcnFormTypePossible()) {
+            return $declaredType;
+        }
+
+        switch ($declaredType) {
             case 'text':
                 return 'Symfony\Component\Form\Extension\Core\Type\TextType';
             case 'number':
@@ -374,7 +380,7 @@ class FormFieldExtension extends FieldAbstractExtension
             default:
                 throw new \InvalidArgumentException(sprintf(
                     'Unsupported field type "%s"',
-                    $field->getType()
+                    $declaredType
                 ));
         }
     }
