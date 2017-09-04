@@ -9,7 +9,7 @@
 
 namespace FSi\Bundle\DataSourceBundle\Tests\Extension\Symfony;
 
-use FSi\Component\DataSource\Extension\Symfony\Core\CoreExtension;
+use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Core\CoreExtension;
 use Symfony\Component\HttpFoundation\Request;
 use FSi\Component\DataSource\Event\DataSourceEvent;
 
@@ -18,16 +18,6 @@ use FSi\Component\DataSource\Event\DataSourceEvent;
  */
 class CoreExtensionTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function setUp()
-    {
-        if (!class_exists('Symfony\Component\HttpFoundation\Request')) {
-            $this->markTestSkipped('Symfony HttpFoundation needed!');
-        }
-    }
-
     /**
      * Checks if Request if converted correctly.
      */
