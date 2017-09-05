@@ -43,10 +43,7 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function getExtendedDriverTypes()
     {
-        return [
-            'doctrine', //deprecated since version 1.4
-            'doctrine-orm'
-        ];
+        return ['doctrine-orm'];
     }
 
     /**
@@ -54,8 +51,6 @@ class DriverExtension extends DriverAbstractExtension
      */
     protected function loadFieldTypesExtensions()
     {
-        return [
-            new Field\FormFieldExtension($this->formFactory, $this->translator),
-        ];
+        return [new Field\FormFieldExtension($this->formFactory, $this->translator)];
     }
 }
