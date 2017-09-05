@@ -25,8 +25,8 @@ class CoreExtensionTest extends \PHPUnit_Framework_TestCase
     {
         $extension = new CoreExtension();
         $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', array(), array($driver));
-        $data1 = array('key1' => 'value1', 'key2' => 'value2');
+        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', [], [$driver]);
+        $data1 = ['key1' => 'value1', 'key2' => 'value2'];
         $data2 = $data1;
 
         $subscribers = $extension->loadSubscribers();

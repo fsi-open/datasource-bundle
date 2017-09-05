@@ -54,7 +54,7 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
         $extension = new DriverExtension($formFactory, $translator);
         $field = $this->getMock('FSi\Component\DataSource\Field\FieldTypeInterface');
         $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', array(), array($driver));
+        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', [], [$driver]);
 
         $datasource
             ->expects($this->any())
@@ -107,18 +107,18 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
                         return true;
 
                     case 'form_options':
-                        return array(
+                        return [
                             'class' => 'FSi\Bundle\DataSourceBundle\Tests\Fixtures\News',
-                        );
+                        ];
                 }
             }))
         ;
 
         $extensions = $extension->getFieldTypeExtensions($type);
 
-        $parameters = array('datasource' => array(DataSourceInterface::PARAMETER_FIELDS => array('name' => 'value')));
+        $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => 'value']]];
         //Form extension will remove 'name' => 'value' since this is not valid entity id (since we have no entities at all).
-        $parameters2 = array('datasource' => array(DataSourceInterface::PARAMETER_FIELDS => array()));
+        $parameters2 = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => []]];
         $args = new FieldEvent\ParameterEventArgs($field, $parameters);
         foreach ($extensions as $ext) {
             $this->assertTrue($ext instanceof FieldAbstractExtension);
@@ -126,7 +126,7 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
         }
         $parameters = $args->getParameter();
         $this->assertEquals($parameters2, $parameters);
-        $fieldView = $this->getMock('FSi\Component\DataSource\Field\FieldViewInterface', array(), array($field));
+        $fieldView = $this->getMock('FSi\Component\DataSource\Field\FieldViewInterface', [], [$field]);
 
         $fieldView
             ->expects($this->atLeastOnce())
@@ -152,11 +152,11 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
 
         $typeFactory = new Form\ResolvedFormTypeFactory();
         $registry = new Form\FormRegistry(
-            array(
+            [
                 new Form\Extension\Core\CoreExtension(),
                 new Form\Extension\Csrf\CsrfExtension($tokenManager),
                 new DoctrineOrmExtension(new TestManagerRegistry($this->getEntityManager())),
-            ),
+            ],
             $typeFactory
         );
 
@@ -168,17 +168,17 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
      */
     private function getEntityManager()
     {
-        $dbParams = array(
+        $dbParams = [
             'driver' => 'pdo_sqlite',
             'memory' => true,
-        );
+        ];
 
-        $config = Setup::createAnnotationMetadataConfiguration(array(__DIR__ . '/../../Fixtures'), true, null, null, false);
+        $config = Setup::createAnnotationMetadataConfiguration([__DIR__ . '/../../Fixtures'], true, null, null, false);
         $em = EntityManager::create($dbParams, $config);
         $tool = new SchemaTool($em);
-        $classes = array(
+        $classes = [
             $em->getClassMetadata('FSi\Bundle\DataSourceBundle\Tests\Fixtures\News'),
-        );
+        ];
         $tool->createSchema($classes);
 
         return $em;

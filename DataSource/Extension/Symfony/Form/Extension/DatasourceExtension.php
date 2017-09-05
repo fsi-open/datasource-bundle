@@ -9,6 +9,6 @@ class DatasourceExtension extends AbstractExtension
 {
     protected function loadTypes()
     {
-        return array(new BetweenType());
+        return [new BetweenType()];
     }
 }

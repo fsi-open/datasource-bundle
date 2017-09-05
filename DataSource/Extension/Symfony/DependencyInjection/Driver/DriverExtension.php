@@ -63,7 +63,7 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function getExtendedDriverTypes()
     {
-        return array($this->driverType);
+        return [$this->driverType];
     }
 
     /**
@@ -106,7 +106,7 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function getFieldTypeExtensions($type)
     {
-        $fieldExtensions = array();
+        $fieldExtensions = [];
 
         foreach ($this->fieldExtensionServiceIds as $extensionName) {
             $extension = $this->container->get($extensionName);
@@ -124,7 +124,7 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function loadSubscribers()
     {
-        $subscribers = array();
+        $subscribers = [];
 
         foreach ($this->subscriberServiceIds as $subscriberName) {
             $subscribers[] = $this->container->get($subscriberName);

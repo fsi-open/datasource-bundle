@@ -30,11 +30,11 @@ class ConfigurationBuilderTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $kernelMockBuilder = $this->getMockBuilder('Symfony\Component\HttpKernel\Kernel')
-            ->setConstructorArgs(array('dev', true));
+            ->setConstructorArgs(['dev', true]);
         if (version_compare(Kernel::VERSION, '2.7.0', '<')) {
-            $kernelMockBuilder->setMethods(array('registerContainerConfiguration', 'registerBundles', 'getBundles', 'init'));
+            $kernelMockBuilder->setMethods(['registerContainerConfiguration', 'registerBundles', 'getBundles', 'init']);
         } else {
-            $kernelMockBuilder->setMethods(array('registerContainerConfiguration', 'registerBundles', 'getBundles'));
+            $kernelMockBuilder->setMethods(['registerContainerConfiguration', 'registerBundles', 'getBundles']);
         }
         $this->kernel = $kernelMockBuilder->getMock();
 
@@ -45,7 +45,7 @@ class ConfigurationBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals(
             $this->subscriber->getSubscribedEvents(),
-            array(DataSourceEvents::PRE_BIND_PARAMETERS => array('readConfiguration', 1024))
+            [DataSourceEvents::PRE_BIND_PARAMETERS => ['readConfiguration', 1024]]
         );
     }
 
@@ -55,12 +55,12 @@ class ConfigurationBuilderTest extends \PHPUnit_Framework_TestCase
         $this->kernel->expects($this->once())
             ->method('getBundles')
             ->will($this->returnCallback(function() use ($self) {
-                $bundle = $self->getMock('Symfony\Component\HttpKernel\Bundle\Bundle', array('getPath'));
+                $bundle = $self->getMock('Symfony\Component\HttpKernel\Bundle\Bundle', ['getPath']);
                 $bundle->expects($self->any())
                     ->method('getPath')
                     ->will($self->returnValue(__DIR__ . '/../../../../Fixtures/FooBundle'));
 
-                return array($bundle);
+                return [$bundle];
             }));
 
         $dataSource = $this->getMockBuilder('FSi\Component\DataSource\DataSource')
@@ -73,9 +73,9 @@ class ConfigurationBuilderTest extends \PHPUnit_Framework_TestCase
 
         $dataSource->expects($this->once())
             ->method('addField')
-            ->with('title', 'text', 'like', array('label' => 'Title'));
+            ->with('title', 'text', 'like', ['label' => 'Title']);
 
-        $event = new ParametersEventArgs($dataSource, array());
+        $event = new ParametersEventArgs($dataSource, []);
 
         $this->subscriber->readConfiguration($event);
     }
@@ -86,19 +86,19 @@ class ConfigurationBuilderTest extends \PHPUnit_Framework_TestCase
         $this->kernel->expects($this->once())
             ->method('getBundles')
             ->will($this->returnCallback(function() use ($self) {
-                $fooBundle = $self->getMock('Symfony\Component\HttpKernel\Bundle\Bundle', array('getPath'));
+                $fooBundle = $self->getMock('Symfony\Component\HttpKernel\Bundle\Bundle', ['getPath']);
                 $fooBundle->expects($self->any())
                     ->method('getPath')
                     ->will($self->returnValue(__DIR__ . '/../../../../Fixtures/FooBundle'));
 
-                $barBundle = $self->getMock('Symfony\Component\HttpKernel\Bundle\Bundle', array('getPath'));
+                $barBundle = $self->getMock('Symfony\Component\HttpKernel\Bundle\Bundle', ['getPath']);
                 $barBundle->expects($self->any())
                     ->method('getPath')
                     ->will($self->returnValue(__DIR__ . '/../../../../Fixtures/BarBundle'));
-                return array(
+                return [
                     $fooBundle,
                     $barBundle
-                );
+                ];
             }));
 
         $dataSource = $this->getMockBuilder('FSi\Component\DataSource\DataSource')
@@ -112,14 +112,14 @@ class ConfigurationBuilderTest extends \PHPUnit_Framework_TestCase
         // 0 - 3 getName() is called
         $dataSource->expects($this->at(4))
             ->method('addField')
-            ->with('title', 'text', 'like', array('label' => 'News Title'));
+            ->with('title', 'text', 'like', ['label' => 'News Title']);
 
         $dataSource->expects($this->at(5))
             ->method('addField')
-            ->with('author', null, null, array());
+            ->with('author', null, null, []);
 
 
-        $event = new ParametersEventArgs($dataSource, array());
+        $event = new ParametersEventArgs($dataSource, []);
 
         $this->subscriber->readConfiguration($event);
     }

@@ -16,8 +16,8 @@ class TestCoreExtension extends AbstractExtension
 {
     protected function loadTypes()
     {
-        return array(
+        return [
             new Type\FormType(),
-        );
+        ];
     }
 }

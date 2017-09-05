@@ -36,7 +36,7 @@ class ConfigurationBuilder implements EventSubscriberInterface
      */
     public static function getSubscribedEvents()
     {
-        return array(DataSourceEvents::PRE_BIND_PARAMETERS => array('readConfiguration', 1024));
+        return [DataSourceEvents::PRE_BIND_PARAMETERS => ['readConfiguration', 1024]];
     }
 
     /**
@@ -47,7 +47,7 @@ class ConfigurationBuilder implements EventSubscriberInterface
     public function readConfiguration(DataSourceEvent\ParametersEventArgs $event)
     {
         $dataSource = $event->getDataSource();
-        $dataSourceConfiguration = array();
+        $dataSourceConfiguration = [];
         foreach ($this->kernel->getBundles() as $bundle) {
             if ($this->hasDataSourceConfiguration($bundle->getPath(), $dataSource->getName())) {
                 $configuration = $this->getDataSourceConfiguration($bundle->getPath(), $dataSource->getName());
@@ -99,7 +99,7 @@ class ConfigurationBuilder implements EventSubscriberInterface
                 : null;
             $options = array_key_exists('options', $field)
                 ? $field['options']
-                : array();
+                : [];
 
             $dataSource->addField($name, $type, $comparison, $options);
         }
