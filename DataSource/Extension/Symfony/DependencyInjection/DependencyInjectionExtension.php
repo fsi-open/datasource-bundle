@@ -49,7 +49,7 @@ class DependencyInjectionExtension extends DataSourceAbstractExtension
      */
     public function loadDriverExtensions()
     {
-        $extensions = array();
+        $extensions = [];
 
         foreach ($this->driverExtensionServiceIds as $alias => $extensionName) {
             $extension = $this->container->get($this->driverExtensionServiceIds[$alias]);
@@ -64,7 +64,7 @@ class DependencyInjectionExtension extends DataSourceAbstractExtension
      */
     public function loadSubscribers()
     {
-        $subscribers = array();
+        $subscribers = [];
 
         foreach ($this->subscriberServiceIds as $alias => $subscriberName) {
             $subscriber = $this->container->get($this->subscriberServiceIds[$alias]);

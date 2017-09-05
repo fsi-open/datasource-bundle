@@ -36,25 +36,25 @@ class FormFieldExtension extends FieldAbstractExtension
     /**
      * @var array
      */
-    protected $forms = array();
+    protected $forms = [];
 
     /**
      * Original values of input parameters for each supported field.
      *
      * @var array
      */
-    protected $parameters = array();
+    protected $parameters = [];
 
     /**
      * {@inheritdoc}
      */
     public static function getSubscribedEvents()
     {
-        return array(
-            FieldEvents::PRE_BIND_PARAMETER => array('preBindParameter'),
-            FieldEvents::POST_BUILD_VIEW => array('postBuildView'),
-            FieldEvents::POST_GET_PARAMETER => array('preGetParameter'),
-        );
+        return [
+            FieldEvents::PRE_BIND_PARAMETER => ['preBindParameter'],
+            FieldEvents::POST_BUILD_VIEW => ['postBuildView'],
+            FieldEvents::POST_GET_PARAMETER => ['preGetParameter'],
+        ];
     }
 
     public function __construct(FormFactory $formFactory, TranslatorInterface $translator)
@@ -68,7 +68,7 @@ class FormFieldExtension extends FieldAbstractExtension
      */
     public function getExtendedFieldTypes()
     {
-        return array('text', 'number', 'date', 'time', 'datetime', 'entity', 'boolean');
+        return ['text', 'number', 'date', 'time', 'datetime', 'entity', 'boolean'];
     }
 
     /**
@@ -77,16 +77,16 @@ class FormFieldExtension extends FieldAbstractExtension
     public function initOptions(FieldTypeInterface $field)
     {
         $field->getOptionsResolver()
-            ->setDefaults(array(
+            ->setDefaults([
                 'form_filter' => true,
-                'form_options' => array(),
-                'form_from_options' => array(),
-                'form_to_options' =>array()
-            ))
-            ->setDefined(array(
+                'form_options' => [],
+                'form_from_options' => [],
+                'form_to_options' =>[]
+            ])
+            ->setDefined([
                 'form_type',
                 'form_order'
-            ))
+            ])
             ->setAllowedTypes('form_filter', 'bool')
             ->setAllowedTypes('form_options', 'array')
             ->setAllowedTypes('form_from_options', 'array')
@@ -159,7 +159,7 @@ class FormFieldExtension extends FieldAbstractExtension
         $field_oid = spl_object_hash($field);
 
         if (isset($this->parameters[$field_oid])) {
-            $parameters = array();
+            $parameters = [];
             $this->setParameterValue($parameters, $field, $this->parameters[$field_oid]);
             $event->setParameter($parameters);
         }
@@ -191,7 +191,7 @@ class FormFieldExtension extends FieldAbstractExtension
         }
 
         $options = $field->getOption('form_options');
-        $options = array_merge($options, array('required' => false, 'auto_initialize' => false));
+        $options = array_merge($options, ['required' => false, 'auto_initialize' => false]);
 
         $form = $this->formFactory->createNamed(
             $datasource->getName(),
@@ -199,7 +199,7 @@ class FormFieldExtension extends FieldAbstractExtension
                 ? 'Symfony\Component\Form\Extension\Core\Type\CollectionType'
                 : 'collection',
             null,
-            array('csrf_protection' => false)
+            ['csrf_protection' => false]
         );
         $fieldsForm = $this->formFactory->createNamed(
             DataSourceInterface::PARAMETER_FIELDS,
@@ -207,7 +207,7 @@ class FormFieldExtension extends FieldAbstractExtension
                 ? 'Symfony\Component\Form\Extension\Core\Type\FormType'
                 : 'form',
             null,
-            array('auto_initialize' => false)
+            ['auto_initialize' => false]
         );
 
         switch ($field->getComparison()) {
@@ -242,7 +242,7 @@ class FormFieldExtension extends FieldAbstractExtension
      * @param FieldTypeInterface $field
      * @param array $options
      */
-    protected function buildBetweenComparisonForm(FormInterface $form, FieldTypeInterface $field, $options = array())
+    protected function buildBetweenComparisonForm(FormInterface $form, FieldTypeInterface $field, $options = [])
     {
         $betweenBuilder = $this->getFormFactory()->createNamedBuilder(
             $field->getName(),
@@ -270,18 +270,18 @@ class FormFieldExtension extends FieldAbstractExtension
      * @param FieldTypeInterface $field
      * @param array $options
      */
-    protected function buildIsNullComparisonForm(FormInterface $form, FieldTypeInterface $field, $options = array())
+    protected function buildIsNullComparisonForm(FormInterface $form, FieldTypeInterface $field, $options = [])
     {
         if ($field->hasOption('form_type')) {
             return $form->add($field->getName(), $field->getOption('form_type'), $options);
         }
 
-        $defaultOptions = array(
-            'choices' => array(
-                 $this->translator->trans('datasource.form.choices.is_null', array(), 'DataSourceBundle') => 'null',
-                 $this->translator->trans('datasource.form.choices.is_not_null', array(), 'DataSourceBundle') => 'no_null'
-            ),
-        );
+        $defaultOptions = [
+            'choices' => [
+                 $this->translator->trans('datasource.form.choices.is_null', [], 'DataSourceBundle') => 'null',
+                 $this->translator->trans('datasource.form.choices.is_not_null', [], 'DataSourceBundle') => 'no_null'
+            ],
+        ];
 
         if ($this->isSymfonyForm27()) {
             $defaultOptions['placeholder'] = '';
@@ -311,18 +311,18 @@ class FormFieldExtension extends FieldAbstractExtension
      * @param FieldTypeInterface $field
      * @param array $options
      */
-    protected function buildBooleanForm(FormInterface $form, FieldTypeInterface $field, $options = array())
+    protected function buildBooleanForm(FormInterface $form, FieldTypeInterface $field, $options = [])
     {
         if ($field->hasOption('form_type')) {
             return $form->add($field->getName(), $field->getOption('form_type'), $options);
         }
 
-        $defaultOptions = array(
-            'choices' => array(
-                $this->translator->trans('datasource.form.choices.yes', array(), 'DataSourceBundle') => '1',
-                $this->translator->trans('datasource.form.choices.no', array(), 'DataSourceBundle') => '0',
-            ),
-        );
+        $defaultOptions = [
+            'choices' => [
+                $this->translator->trans('datasource.form.choices.yes', [], 'DataSourceBundle') => '1',
+                $this->translator->trans('datasource.form.choices.no', [], 'DataSourceBundle') => '0',
+            ],
+        ];
 
         if ($this->isSymfonyForm27()) {
             $defaultOptions['placeholder'] = '';

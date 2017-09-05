@@ -24,7 +24,7 @@ class BindParameters implements EventSubscriberInterface
      */
     public static function getSubscribedEvents()
     {
-        return array(DataSourceEvents::PRE_BIND_PARAMETERS => array('preBindParameters', 1024));
+        return [DataSourceEvents::PRE_BIND_PARAMETERS => ['preBindParameters', 1024]];
     }
 
     /**

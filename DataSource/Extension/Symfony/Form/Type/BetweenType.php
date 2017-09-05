@@ -20,7 +20,7 @@ class BetweenType extends AbstractType
      */
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $resolver->setDefaults(array('label' => false));
+        $resolver->setDefaults(['label' => false]);
     }
 
     /**
@@ -28,7 +28,7 @@ class BetweenType extends AbstractType
      */
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array('label' => false));
+        $resolver->setDefaults(['label' => false]);
     }
 
     /**

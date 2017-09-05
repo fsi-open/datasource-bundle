@@ -35,10 +35,10 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $subPath = version_compare(Kernel::VERSION, '2.7.0', '<') ? 'Symfony/Bridge/Twig/' : '';
-        $loader = new \Twig_Loader_Filesystem(array(
+        $loader = new \Twig_Loader_Filesystem([
             __DIR__ . '/../../../vendor/symfony/twig-bridge/' . $subPath . 'Resources/views/Form',
             __DIR__ . '/../../../Resources/views', // datasource base theme
-        ));
+        ]);
 
         $twig = new \Twig_Environment($loader);
         $twig->addExtension(new TranslationExtension(new StubTranslator()));
@@ -76,11 +76,11 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
         $datasourceView = $this->getDataSourceView('datasource');
         $fieldView1 = $this->getMock(
             'FSi\Component\DataSource\Field\FieldViewInterface',
-            array(
+            [
                 '__construct', 'getName', 'getType', 'getComparison', 'getParameter',
                 'getDataSourceView', 'setDataSourceView', 'hasAttribute', 'getAttribute',
                 'getAttributes', 'setAttribute', 'removeAttribute'
-            )
+            ]
             );
         $fieldView1->expects($this->atLeastOnce())
             ->method('hasAttribute')
@@ -88,11 +88,11 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue(true));
         $fieldView2 = $this->getMock(
             'FSi\Component\DataSource\Field\FieldViewInterface',
-            array(
+            [
                 '__construct', 'getName', 'getType', 'getComparison', 'getParameter',
                 'getDataSourceView', 'setDataSourceView', 'hasAttribute', 'getAttribute',
                 'getAttributes', 'setAttribute', 'removeAttribute'
-            )
+            ]
         );
         $fieldView2->expects($this->atLeastOnce())
             ->method('hasAttribute')
@@ -100,11 +100,11 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue(false));
         $fieldView3 = $this->getMock(
             'FSi\Component\DataSource\Field\FieldViewInterface',
-            array(
+            [
                 '__construct', 'getName', 'getType', 'getComparison', 'getParameter',
                 'getDataSourceView', 'setDataSourceView', 'hasAttribute', 'getAttribute',
                 'getAttributes', 'setAttribute', 'removeAttribute'
-            )
+            ]
         );
         $fieldView3->expects($this->atLeastOnce())
             ->method('hasAttribute')
@@ -112,7 +112,7 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue(true));
         $datasourceView->expects($this->atLeastOnce())
             ->method('getFields')
-            ->will($this->returnValue(array($fieldView1, $fieldView2, $fieldView3)));
+            ->will($this->returnValue([$fieldView1, $fieldView2, $fieldView3]));
 
         $this->assertEquals(
             $this->extension->datasourceFilterCount($datasourceView),
@@ -134,7 +134,7 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
 
         $template->expects($this->at(1))
             ->method('getParent')
-            ->with(array())
+            ->with([])
             ->will($this->returnValue(false));
 
         $template->expects($this->at(2))
@@ -147,11 +147,11 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
 
         $template->expects($this->at(3))
             ->method('displayBlock')
-            ->with('datasource_filter', array(
+            ->with('datasource_filter', [
                 'datasource' => $datasourceView,
-                'vars' => array(),
+                'vars' => [],
                 'global_var' => 'global_value'
-            ))
+            ])
             ->will($this->returnValue(true));
 
         $this->extension->datasourceFilter($datasourceView);
@@ -173,7 +173,7 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
 
         $template->expects($this->at(1))
             ->method('getParent')
-            ->with(array())
+            ->with([])
             ->will($this->returnValue(false));
 
         $template->expects($this->at(2))
@@ -183,7 +183,7 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
 
         $template->expects($this->at(3))
             ->method('getParent')
-            ->with(array())
+            ->with([])
             ->will($this->returnValue($parent));
 
         $parent->expects($this->at(0))
@@ -196,11 +196,11 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
 
         $parent->expects($this->at(1))
             ->method('displayBlock')
-            ->with('datasource_filter', array(
+            ->with('datasource_filter', [
                 'datasource' => $datasourceView,
-                'vars' => array(),
+                'vars' => [],
                 'global_var' => 'global_value'
-            ))
+            ])
             ->will($this->returnValue(true));
 
         $this->extension->datasourceFilter($datasourceView);
@@ -210,7 +210,7 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
     {
         $router = $this->getMock(
             '\Symfony\Component\Routing\RouterInterface',
-            array('getRouteCollection', 'match', 'setContext', 'getContext', 'generate')
+            ['getRouteCollection', 'match', 'setContext', 'getContext', 'generate']
         );
         $router->expects($this->any())
             ->method('generate')
@@ -250,11 +250,11 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
     {
         return $this->getMock(
             '\Twig_Template',
-            array(
+            [
                 'hasBlock', 'render', 'display', 'getEnvironment', 'displayBlock',
                 'getParent', 'getTemplateName', 'doDisplay', 'getDebugInfo'
-            ),
-            array($this->twig)
+            ],
+            [$this->twig]
         );
     }
 
@@ -264,7 +264,7 @@ class DataSourceExtensionTest extends \PHPUnit_Framework_TestCase
     private function getFormExtension($legacy)
     {
         if ($legacy) {
-            $rendererEngine = new TwigRendererEngine(array('form_div_layout.html.twig',));
+            $rendererEngine = new TwigRendererEngine(['form_div_layout.html.twig',]);
             $renderer = new TwigRenderer($rendererEngine);
             $formExtension = new FormExtension($renderer);
         } else {

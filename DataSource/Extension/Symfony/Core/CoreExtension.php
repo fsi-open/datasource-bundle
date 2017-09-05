@@ -22,8 +22,8 @@ class CoreExtension extends DataSourceAbstractExtension
      */
     public function loadSubscribers()
     {
-        return array(
+        return [
             new EventSubscriber\BindParameters(),
-        );
+        ];
     }
 }

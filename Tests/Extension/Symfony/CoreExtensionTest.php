@@ -9,7 +9,7 @@
 
 namespace FSi\Bundle\DataSourceBundle\Tests\Extension\Symfony;
 
-use FSi\Component\DataSource\Extension\Symfony\Core\CoreExtension;
+use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Core\CoreExtension;
 use Symfony\Component\HttpFoundation\Request;
 use FSi\Component\DataSource\Event\DataSourceEvent;
 
@@ -19,24 +19,14 @@ use FSi\Component\DataSource\Event\DataSourceEvent;
 class CoreExtensionTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * {@inheritdoc}
-     */
-    public function setUp()
-    {
-        if (!class_exists('Symfony\Component\HttpFoundation\Request')) {
-            $this->markTestSkipped('Symfony HttpFoundation needed!');
-        }
-    }
-
-    /**
      * Checks if Request if converted correctly.
      */
     public function testBindParameters()
     {
         $extension = new CoreExtension();
         $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', array(), array($driver));
-        $data1 = array('key1' => 'value1', 'key2' => 'value2');
+        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', [], [$driver]);
+        $data1 = ['key1' => 'value1', 'key2' => 'value2'];
         $data2 = $data1;
 
         $subscribers = $extension->loadSubscribers();

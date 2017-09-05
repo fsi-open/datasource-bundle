@@ -23,9 +23,9 @@ class Events implements EventSubscriberInterface
      */
     public static function getSubscribedEvents()
     {
-        return array(
-            DataSourceEvents::POST_BUILD_VIEW => array('postBuildView'),
-        );
+        return [
+            DataSourceEvents::POST_BUILD_VIEW => ['postBuildView'],
+        ];
     }
 
     /**
@@ -35,11 +35,11 @@ class Events implements EventSubscriberInterface
     {
         $fieldViews = $event->getView()->getFields();
 
-        $positive = array();
-        $negative = array();
-        $neutral = array();
+        $positive = [];
+        $negative = [];
+        $neutral = [];
 
-        $indexedViews = array();
+        $indexedViews = [];
         foreach ($fieldViews as $fieldView) {
             $field = $event->getDataSource()->getField($fieldView->getName());
             if ($field->hasOption('form_order')) {
@@ -57,7 +57,7 @@ class Events implements EventSubscriberInterface
         asort($positive);
         asort($negative);
 
-        $fieldViews = array();
+        $fieldViews = [];
         foreach ($negative as $name => $order) {
             $fieldViews[] = $indexedViews[$name];
         }

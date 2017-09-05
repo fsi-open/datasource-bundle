@@ -43,9 +43,9 @@ class FormExtension extends DataSourceAbstractExtension
      */
     public function loadDriverExtensions()
     {
-        return array(
+        return [
             new Driver\DriverExtension($this->formFactory, $this->translator),
-        );
+        ];
     }
 
     /**
@@ -53,8 +53,8 @@ class FormExtension extends DataSourceAbstractExtension
      */
     public function loadSubscribers()
     {
-        return array(
+        return [
             new EventSubscriber\Events(),
-        );
+        ];
     }
 }
