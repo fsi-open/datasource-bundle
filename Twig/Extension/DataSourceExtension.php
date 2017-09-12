@@ -10,12 +10,15 @@
 namespace FSi\Bundle\DataSourceBundle\Twig\Extension;
 
 use FSi\Bundle\DataSourceBundle\Twig\TokenParser\DataSourceRouteTokenParser;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 use FSi\Bundle\DataSourceBundle\Twig\TokenParser\DataSourceThemeTokenParser;
 use FSi\Component\DataSource\DataSourceViewInterface;
 use FSi\Component\DataSource\Extension\Core\Pagination\PaginationExtension;
 use FSi\Component\DataSource\Field\FieldViewInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Twig_SimpleFunction;
+use Twig_Template;
 
 class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_InitRuntimeInterface
 {
@@ -84,12 +87,12 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction('datasource_filter_widget', [$this, 'datasourceFilter'], ['is_safe' => ['html']]),
-            new \Twig_SimpleFunction('datasource_filter_count', [$this, 'datasourceFilterCount'], ['is_safe' => ['html']]),
-            new \Twig_SimpleFunction('datasource_field_widget', [$this, 'datasourceField'], ['is_safe' => ['html']]),
-            new \Twig_SimpleFunction('datasource_sort_widget', [$this, 'datasourceSort'], ['is_safe' => ['html']]),
-            new \Twig_SimpleFunction('datasource_pagination_widget', [$this, 'datasourcePagination'], ['is_safe' => ['html']]),
-            new \Twig_SimpleFunction('datasource_max_results_widget', [$this, 'datasourceMaxResults'], ['is_safe' => ['html']]),
+            new Twig_SimpleFunction('datasource_filter_widget', [$this, 'datasourceFilter'], ['is_safe' => ['html']]),
+            new Twig_SimpleFunction('datasource_filter_count', [$this, 'datasourceFilterCount'], ['is_safe' => ['html']]),
+            new Twig_SimpleFunction('datasource_field_widget', [$this, 'datasourceField'], ['is_safe' => ['html']]),
+            new Twig_SimpleFunction('datasource_sort_widget', [$this, 'datasourceSort'], ['is_safe' => ['html']]),
+            new Twig_SimpleFunction('datasource_pagination_widget', [$this, 'datasourcePagination'], ['is_safe' => ['html']]),
+            new Twig_SimpleFunction('datasource_max_results_widget', [$this, 'datasourceMaxResults'], ['is_safe' => ['html']]),
         ];
     }
 
@@ -114,7 +117,7 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
      */
     public function setTheme(DataSourceViewInterface $dataSource, $theme, array $vars = [])
     {
-        $this->themes[$dataSource->getName()] = ($theme instanceof \Twig_Template)
+        $this->themes[$dataSource->getName()] = ($theme instanceof Twig_Template)
             ? $theme
             : $this->environment->loadTemplate($theme);
         $this->themesVars[$dataSource->getName()] = $vars;
@@ -381,11 +384,15 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
             return $this->routes[$dataSource->getName()];
         }
 
-        $request = $this->container->get('request');
+        /* @var $requestStack RequestStack */
+        $requestStack = $this->container->get('request_stack');
+        $request = $requestStack->getMasterRequest();
         if ($request->attributes->get('_route') === '_fragment') {
-            throw new \RuntimeException('Some datasource widget was called during Symfony internal request. You
-                must use {% datasource_route %} twig tag to specify target route and/or additional parameters for
-                this datasource\'s actions');
+            throw new \RuntimeException(
+                'Some datasource widget was called during Symfony internal request.
+                You must use {% datasource_route %} twig tag to specify target
+                route and/or additional parameters for this datasource\'s actions'
+            );
         }
         $router = $this->container->get('router');
         $parameters = $router->match($request->getPathInfo());
@@ -477,11 +484,11 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
     }
 
     /**
-     * @param \Twig_Template $template
+     * @param Twig_Template $template
      * @param string $blockName
-     * @return \Twig_Template|bool
+     * @return Twig_Template|bool
      */
-    private function findTemplateWithBlock(\Twig_Template $template, $blockName, array $contextVars)
+    private function findTemplateWithBlock(Twig_Template $template, $blockName, array $contextVars)
     {
         if ($template->hasBlock($blockName, $contextVars)) {
             return $template;
