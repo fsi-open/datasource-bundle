@@ -25,7 +25,7 @@ class DataSourceRouteNode extends \Twig_Node
     {
         $compiler
             ->addDebugInfo($this)
-            ->write('$this->env->getExtension(\'datasource\')->setRoute(')
+            ->write('$this->env->getExtension(\'FSi\Bundle\DataSourceBundle\Twig\Extension\DataSourceExtension\')->setRoute(')
             ->subcompile($this->getNode('datasource'))
             ->raw(', ')
             ->subcompile($this->getNode('route'))
