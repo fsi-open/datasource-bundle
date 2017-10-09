@@ -50,8 +50,10 @@ class FSIDataSourceExtension extends Extension
     private function registerDrivers($loader)
     {
         $loader->load('driver/collection.xml');
-        /* doctrine driver is deprecated since version 1.4 */
-        $loader->load('driver/doctrine.xml');
+        /* doctrine driver is loaded for compatibility with fsi/datasource 1.x only */
+        if (class_exists('FSi\Component\DataSource\Driver\Doctrine\DoctrineDriver')) {
+            $loader->load('driver/doctrine.xml');
+        }
         if (class_exists('FSi\Component\DataSource\Driver\Doctrine\ORM\DoctrineDriver')) {
             $loader->load('driver/doctrine-orm.xml');
         }
