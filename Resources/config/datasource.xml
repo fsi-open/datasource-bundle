@@ -20,7 +20,6 @@
 
         <!-- DataSource extensions -->
         <service id="datasource.extension" class="%datasource.extension.class%">
-            <argument type="service" id="service_container" />
             <!-- All services with tag "datasource.driver.extension" are inserted here by DataSourcePass -->
             <argument type="collection" />
             <!-- All services with tag "datasource.subscriber" are inserted here by DataSourcePass -->
