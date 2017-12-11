@@ -33,7 +33,7 @@
         </service>
 
         <!-- DataSourceFactory -->
-        <service id="datasource.factory" class="%datasource.factory.class%">
+        <service id="datasource.factory" class="%datasource.factory.class%" lazy="true" public="true">
             <argument type="service" id="datasource.driver.factory.manager"></argument>
             <argument type="collection">
                 <!--
@@ -44,6 +44,9 @@
                 <argument type="service" id="datasource.extension" />
             </argument>
         </service>
+
+        <service id="FSi\Component\DataSource\DataSourceFactoryInterface"
+                 alias="datasource.factory" public="true" />
 
         <!-- PaginationExtension -->
         <service id="datasource.subscriber.pagination" class="FSi\Component\DataSource\Extension\Core\Pagination\EventSubscriber\Events">
