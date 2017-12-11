@@ -9,39 +9,33 @@
 
 namespace FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection;
 
-use FSi\Component\DataSource\DataSourceAbstractExtension;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use FSi\Component\DataSource\DataSourceExtensionInterface;
+use FSi\Component\DataSource\Driver\DriverExtensionInterface;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * DependencyInjection extension loads various types of extensions from Symfony's service container.
  */
-class DependencyInjectionExtension extends DataSourceAbstractExtension
+class DependencyInjectionExtension implements DataSourceExtensionInterface
 {
     /**
-     * @var ContainerInterface
+     * @var DriverExtensionInterface[]
      */
-    protected $container;
+    private $driverExtensions;
 
     /**
-     * @var array
+     * @var EventSubscriberInterface[]
      */
-    protected $driverExtensionServiceIds;
+    private $eventSubscribers;
 
     /**
-     * @var array
+     * @param DriverExtensionInterface[] $driverExtensions
+     * @param EventSubscriberInterface[] $eventSubscribers
      */
-    protected $subscriberServiceIds;
-
-    /**
-     * @param ContainerInterface $container
-     * @param array $driverExtensionServiceIds
-     * @param array $subscriberServiceIds
-     */
-    public function __construct(ContainerInterface $container, $driverExtensionServiceIds, $subscriberServiceIds)
+    public function __construct(array $driverExtensions, array $eventSubscribers)
     {
-        $this->container = $container;
-        $this->driverExtensionServiceIds = $driverExtensionServiceIds;
-        $this->subscriberServiceIds = $subscriberServiceIds;
+        $this->driverExtensions = $driverExtensions;
+        $this->eventSubscribers = $eventSubscribers;
     }
 
     /**
@@ -49,14 +43,7 @@ class DependencyInjectionExtension extends DataSourceAbstractExtension
      */
     public function loadDriverExtensions()
     {
-        $extensions = [];
-
-        foreach ($this->driverExtensionServiceIds as $alias => $extensionName) {
-            $extension = $this->container->get($this->driverExtensionServiceIds[$alias]);
-            $extensions[] = $extension;
-        }
-
-        return $extensions;
+        return $this->driverExtensions;
     }
 
     /**
@@ -64,13 +51,6 @@ class DependencyInjectionExtension extends DataSourceAbstractExtension
      */
     public function loadSubscribers()
     {
-        $subscribers = [];
-
-        foreach ($this->subscriberServiceIds as $alias => $subscriberName) {
-            $subscriber = $this->container->get($this->subscriberServiceIds[$alias]);
-            $subscribers[] = $subscriber;
-        }
-
-        return $subscribers;
+        return $this->eventSubscribers;
     }
 }

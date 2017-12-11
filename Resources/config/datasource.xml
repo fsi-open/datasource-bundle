@@ -20,7 +20,6 @@
 
         <!-- DataSource extensions -->
         <service id="datasource.extension" class="%datasource.extension.class%">
-            <argument type="service" id="service_container" />
             <!-- All services with tag "datasource.driver.extension" are inserted here by DataSourcePass -->
             <argument type="collection" />
             <!-- All services with tag "datasource.subscriber" are inserted here by DataSourcePass -->
@@ -34,7 +33,7 @@
         </service>
 
         <!-- DataSourceFactory -->
-        <service id="datasource.factory" class="%datasource.factory.class%">
+        <service id="datasource.factory" class="%datasource.factory.class%" lazy="true" public="true">
             <argument type="service" id="datasource.driver.factory.manager"></argument>
             <argument type="collection">
                 <!--
@@ -45,6 +44,9 @@
                 <argument type="service" id="datasource.extension" />
             </argument>
         </service>
+
+        <service id="FSi\Component\DataSource\DataSourceFactoryInterface"
+                 alias="datasource.factory" public="true" />
 
         <!-- PaginationExtension -->
         <service id="datasource.subscriber.pagination" class="FSi\Component\DataSource\Extension\Core\Pagination\EventSubscriber\Events">

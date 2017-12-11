@@ -36,6 +36,10 @@ class FSIDataSourceExtension extends Extension
         if(isset($config['twig']['enabled']) && $config['twig']['enabled']) {
             $this->registerTwigConfiguration($config['twig'], $container, $loader);
         }
+
+        if (method_exists($container, 'registerForAutoconfiguration')) {
+            $this->registerForAutoconfiguration($container);
+        }
     }
 
     public function registerTwigConfiguration(array $config, ContainerBuilder $container, XmlFileLoader $loader)
@@ -59,6 +63,44 @@ class FSIDataSourceExtension extends Extension
         }
         if (class_exists('FSi\Component\DataSource\Driver\Doctrine\DBAL\DBALDriver')) {
             $loader->load('driver/doctrine-dbal.xml');
+        }
+    }
+
+    private function registerForAutoconfiguration(ContainerBuilder $container)
+    {
+        $container->registerForAutoconfiguration('FSi\Component\DataSource\Driver\DriverFactoryInterface')
+            ->addTag('datasource.driver.factory');
+        $container->registerForAutoconfiguration('FSi\Component\DataSource\Driver\DriverExtensionInterface')
+            ->addTag('datasource.driver.extension');
+        $container->registerForAutoconfiguration('FSi\Component\DataSource\Driver\Collection\CollectionAbstractField')
+            ->addTag('datasource.driver.collection.field');
+        $container->registerForAutoconfiguration('FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Collection\FieldEventSubscriberInterface')
+            ->addTag('datasource.driver.collection.field.subscriber');
+        $container->registerForAutoconfiguration('FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Collection\EventSubscriberInterface')
+            ->addTag('datasource.driver.collection.subscriber');
+        if (class_exists('FSi\Component\DataSource\Driver\Doctrine\DoctrineDriver')) {
+            $container->registerForAutoconfiguration('FSi\Component\DataSource\Driver\Doctrine\DoctrineAbstractField')
+                ->addTag('datasource.driver.doctrine.field');
+            $container->registerForAutoconfiguration('FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\FieldEventSubscriberInterface')
+                ->addTag('datasource.driver.doctrine.field.subscriber');
+            $container->registerForAutoconfiguration('FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\EventSubscriberInterface')
+                ->addTag('datasource.driver.doctrine.subscriber');
+        }
+        if (class_exists('FSi\Component\DataSource\Driver\Doctrine\ORM\DoctrineDriver')) {
+            $container->registerForAutoconfiguration('FSi\Component\DataSource\Driver\Doctrine\ORM\DoctrineAbstractField')
+                ->addTag('datasource.driver.doctrine-orm.field');
+            $container->registerForAutoconfiguration('FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\ORM\FieldEventSubscriberInterface')
+                ->addTag('datasource.driver.doctrine-orm.field.subscriber');
+            $container->registerForAutoconfiguration('FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\ORM\EventSubscriberInterface')
+                ->addTag('datasource.driver.doctrine-orm.subscriber');
+        }
+        if (class_exists('FSi\Component\DataSource\Driver\Doctrine\DBAL\DBALDriver')) {
+            $container->registerForAutoconfiguration('FSi\Component\DataSource\Driver\Doctrine\DBAL\DBALAbstractField')
+                ->addTag('datasource.driver.doctrine-dbal.field');
+            $container->registerForAutoconfiguration('FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\DBAL\FieldEventSubscriberInterface')
+                ->addTag('datasource.driver.doctrine-dbal.field.subscriber');
+            $container->registerForAutoconfiguration('FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\DBAL\EventSubscriberInterface')
+                ->addTag('datasource.driver.doctrine-dbal.subscriber');
         }
     }
 }

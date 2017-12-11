@@ -11,7 +11,6 @@
     <services>
         <!-- Doctrine extensions -->
         <service id="datasource.driver.doctrine_orm.extension" class="%datasource.driver.extension.class%">
-            <argument type="service" id="service_container" />
             <argument type="string">doctrine-orm</argument>
             <!-- All services with tag "datasource.driver.doctrine_orm.field" are inserted here by DataSourcePass -->
             <argument type="collection" />

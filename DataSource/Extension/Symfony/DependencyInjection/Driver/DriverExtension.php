@@ -9,53 +9,61 @@
 
 namespace FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver;
 
-use FSi\Component\DataSource\Driver\DriverAbstractExtension;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use FSi\Component\DataSource\Driver\DriverExtensionInterface;
+use FSi\Component\DataSource\Field\FieldExtensionInterface;
+use FSi\Component\DataSource\Field\FieldTypeInterface;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * DependencyInjection extension loads various types of extensions from Symfony's service container.
  */
-class DriverExtension extends DriverAbstractExtension
+class DriverExtension implements DriverExtensionInterface
 {
-    /**
-     * @var ContainerInterface
-     */
-    protected $container;
-
     /**
      * @var string
      */
-    protected $driverType;
+    private $driverType;
 
     /**
-     * @var array
+     * @var FieldTypeInterface[]
      */
-    protected $fieldServiceIds;
+    private $fieldTypes = [];
 
     /**
-     * @var array
+     * @var FieldExtensionInterface[][]
      */
-    protected $fieldExtensionServiceIds;
+    private $fieldExtensions = [];
 
     /**
-     * @var array
+     * @var EventSubscriberInterface[]
      */
-    protected $subscriberServiceIds;
+    private $eventSubscribers = [];
 
     /**
-     * @param ContainerInterface $container
      * @param string $driverType
-     * @param array $fieldServiceIds
-     * @param array $fieldExtensionServiceIds
-     * @param array $subscriberServiceIds
+     * @param FieldTypeInterface[] $fieldTypes
+     * @param FieldExtensionInterface[] $fieldExtensions
+     * @param EventSubscriberInterface[] $eventSubscribers
      */
-    public function __construct(ContainerInterface $container, $driverType, array $fieldServiceIds, array $fieldExtensionServiceIds, array $subscriberServiceIds)
+    public function __construct($driverType, array $fieldTypes, array $fieldExtensions, array $eventSubscribers)
     {
-        $this->container = $container;
         $this->driverType = $driverType;
-        $this->fieldServiceIds = $fieldServiceIds;
-        $this->fieldExtensionServiceIds = $fieldExtensionServiceIds;
-        $this->subscriberServiceIds = $subscriberServiceIds;
+
+        foreach ($fieldTypes as $fieldType) {
+            $this->fieldTypes[$fieldType->getType()] = $fieldType;
+        }
+
+        foreach ($fieldExtensions as $fieldExtension) {
+            foreach ($fieldExtension->getExtendedFieldTypes() as $extendedFieldType) {
+                if (!array_key_exists($extendedFieldType, $this->fieldExtensions)) {
+                    $this->fieldExtensions[$extendedFieldType] = [];
+                }
+
+                $this->fieldExtensions[$extendedFieldType][] = $fieldExtension;
+            }
+        }
+
+        $this->eventSubscribers = $eventSubscribers;
     }
 
     /**
@@ -71,7 +79,7 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function hasFieldType($type)
     {
-        return isset($this->fieldServiceIds[$type]);
+        return array_key_exists($type, $this->fieldTypes);
     }
 
     /**
@@ -79,11 +87,11 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function getFieldType($type)
     {
-        if (!isset($this->fieldServiceIds[$type])) {
+        if (!array_key_exists($type, $this->fieldTypes)) {
             throw new \InvalidArgumentException(sprintf('The field type "%s" is not registered within the service container.', $type));
         }
 
-        return $this->container->get($this->fieldServiceIds[$type]);
+        return $this->fieldTypes[$type];
     }
 
     /**
@@ -91,14 +99,7 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function hasFieldTypeExtensions($type)
     {
-        foreach ($this->fieldExtensionServiceIds as $extensionName) {
-            $extension = $this->container->get($extensionName);
-            $types = $extension->getExtendedFieldTypes();
-            if (in_array($type, $types)) {
-                return true;
-            }
-        }
-        return false;
+        return array_key_exists($type, $this->fieldExtensions);
     }
 
     /**
@@ -106,17 +107,11 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function getFieldTypeExtensions($type)
     {
-        $fieldExtensions = [];
-
-        foreach ($this->fieldExtensionServiceIds as $extensionName) {
-            $extension = $this->container->get($extensionName);
-            $types = $extension->getExtendedFieldTypes();
-            if (in_array($type, $types)) {
-                $fieldExtensions[] = $extension;
-            }
+        if (!array_key_exists($type, $this->fieldExtensions)) {
+            return [];
         }
 
-        return $fieldExtensions;
+        return $this->fieldExtensions[$type];
     }
 
     /**
@@ -124,12 +119,6 @@ class DriverExtension extends DriverAbstractExtension
      */
     public function loadSubscribers()
     {
-        $subscribers = [];
-
-        foreach ($this->subscriberServiceIds as $subscriberName) {
-            $subscribers[] = $this->container->get($subscriberName);
-        }
-
-        return $subscribers;
+        return $this->eventSubscribers;
     }
 }
