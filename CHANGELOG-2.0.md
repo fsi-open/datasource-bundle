@@ -28,3 +28,9 @@ with corresponding tags:
 `FSi\Component\DataSource\Driver\Doctrine\DBAL\DBALAbstractField` - `'datasource.driver.doctrine-dbal.field'`
 `FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\DBAL\FieldEventSubscriberInterface` - `'datasource.driver.doctrine-dbal.field.subscriber'`
 `FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\DBAL\EventSubscriberInterface` - `'datasource.driver.doctrine-dbal.subscriber'`
+
+## Dropped support for PHP below 7.1
+
+To be able to fully utilize new functionality introduced in 7.1, we have decided
+to only support PHP versions equal or higher to it. All bundle's classes and interfaces
+utilize new php 7.1 features like scalar typehints, return typehints and nullable types.
