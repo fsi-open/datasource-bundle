@@ -86,9 +86,9 @@ class ConfigurationBuilderTest extends TestCase
 
         $dataSource->expects($this->any())->method('getName')->will($this->returnValue('news'));
 
-        // 0 - 3 getName() is called
-        $dataSource->expects($this->at(4))->method('addField')->with('title', 'text', 'like', ['label' => 'News Title']);
-        $dataSource->expects($this->at(5))->method('addField')->with('author', null, null, []);
+        // 0  getName() is called
+        $dataSource->expects($this->at(1))->method('addField')->with('title', 'text', 'like', ['label' => 'News Title']);
+        $dataSource->expects($this->at(2))->method('addField')->with('author', null, null, []);
 
         $this->subscriber->readConfiguration(new ParametersEventArgs($dataSource, []));
     }
@@ -97,9 +97,13 @@ class ConfigurationBuilderTest extends TestCase
     {
         $kernelMockBuilder = $this->getMockBuilder(Kernel::class)->setConstructorArgs(['dev', true]);
         if (version_compare(Kernel::VERSION, '2.7.0', '<')) {
-            $kernelMockBuilder->setMethods(['registerContainerConfiguration', 'registerBundles', 'getBundles', 'init']);
+            $kernelMockBuilder->setMethods(
+                ['registerContainerConfiguration', 'registerBundles', 'getBundles', 'getContainer', 'init']
+            );
         } else {
-            $kernelMockBuilder->setMethods(['registerContainerConfiguration', 'registerBundles', 'getBundles']);
+            $kernelMockBuilder->setMethods(
+                ['registerContainerConfiguration', 'registerBundles', 'getBundles', 'getContainer']
+            );
         }
         $this->kernel = $kernelMockBuilder->getMock();
         $this->subscriber = new ConfigurationBuilder($this->kernel);
