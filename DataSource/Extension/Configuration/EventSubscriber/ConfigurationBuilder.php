@@ -10,98 +10,125 @@
 namespace FSi\Bundle\DataSourceBundle\DataSource\Extension\Configuration\EventSubscriber;
 
 use FSi\Component\DataSource\DataSourceInterface;
-use FSi\Component\DataSource\Event\DataSourceEvent;
+use FSi\Component\DataSource\Event\DataSourceEvent\ParametersEventArgs;
 use FSi\Component\DataSource\Event\DataSourceEvents;
+use RuntimeException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Yaml\Parser;
 
 class ConfigurationBuilder implements EventSubscriberInterface
 {
-    /**
-     * @var \Symfony\Component\HttpKernel\KernelInterface
-     */
-    protected $kernel;
+    private const BUNDLE_CONFIG_PATH = '%s/Resources/config/datasource/%s.yml';
+    private const MAIN_CONFIG_DIRECTORY = 'datasource.yaml.main_config';
 
     /**
-     * @param KernelInterface $kernel
+     * @var KernelInterface
      */
-    function __construct(KernelInterface $kernel)
+    private $kernel;
+
+    /**
+     * @var Parser
+     */
+    private $yamlParser;
+
+    public function __construct(KernelInterface $kernel)
     {
         $this->kernel = $kernel;
+        $this->yamlParser = new Parser();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function getSubscribedEvents()
     {
         return [DataSourceEvents::PRE_BIND_PARAMETERS => ['readConfiguration', 1024]];
     }
 
-    /**
-     * Method called at PreBindParameters event.
-     *
-     * @param \FSi\Component\DataSource\Event\DataSourceEvent\ParametersEventArgs $event
-     */
-    public function readConfiguration(DataSourceEvent\ParametersEventArgs $event)
+    public function readConfiguration(ParametersEventArgs $event)
     {
         $dataSource = $event->getDataSource();
-        $dataSourceConfiguration = [];
-        foreach ($this->kernel->getBundles() as $bundle) {
-            if ($this->hasDataSourceConfiguration($bundle->getPath(), $dataSource->getName())) {
-                $configuration = $this->getDataSourceConfiguration($bundle->getPath(), $dataSource->getName());
+        $mainConfiguration = $this->getMainConfiguration($dataSource->getName());
+        if (null !== $mainConfiguration) {
+            $this->buildConfiguration($dataSource, $mainConfiguration);
+        } else {
+            $this->buildConfigurationFromRegisteredBundles($dataSource);
+        }
+    }
 
-                if (is_array($configuration)) {
-                    $dataSourceConfiguration = $configuration;
-                }
+    private function getMainConfiguration(string $dataSourceName): ?array
+    {
+        $directory = $this->kernel->getContainer()->getParameter(self::MAIN_CONFIG_DIRECTORY);
+        if (null === $directory) {
+            return null;
+        }
+
+        if (false === is_dir($directory)) {
+            throw new RuntimeException(sprintf('"%s" is not a directory!', $directory));
+        }
+
+        $configurationFile = sprintf('%s/%s.yml', rtrim($directory, '/'), $dataSourceName);
+        if (false === file_exists($configurationFile)) {
+            return null;
+        }
+
+        $configuration = $this->parseYamlFile($configurationFile);
+        if (false === is_array($configuration)) {
+            return null;
+        }
+
+        return $configuration;
+    }
+
+    private function buildConfigurationFromRegisteredBundles(DataSourceInterface $dataSource): void
+    {
+        $dataSourceName = $dataSource->getName();
+        $bundles = $this->kernel->getBundles();
+        $eligibleBundles = array_filter(
+            $bundles,
+            function (BundleInterface $bundle) use ($dataSourceName): bool {
+                return file_exists(sprintf(self::BUNDLE_CONFIG_PATH, $bundle->getPath(), $dataSourceName));
             }
+        );
+
+        // The idea here is that the last found configuration should be used
+        $configuration = $this->findLastBundleConfiguration($dataSourceName, $eligibleBundles);
+        if (0 !== count($configuration)) {
+            $this->buildConfiguration($dataSource, $configuration);
         }
-
-        if (count($dataSourceConfiguration)) {
-            $this->buildConfiguration($dataSource, $dataSourceConfiguration);
-        }
     }
 
-    /**
-     * @param string $bundlePath
-     * @param string $dataSourceName
-     * @return bool
-     */
-    protected function hasDataSourceConfiguration($bundlePath, $dataSourceName)
+    private function findLastBundleConfiguration(string $dataSourceName, array $eligibleBundles): array
     {
-        return file_exists(sprintf($bundlePath . '/Resources/config/datasource/%s.yml', $dataSourceName));
+        return array_reduce(
+            $eligibleBundles,
+            function (array $configuration, BundleInterface $bundle) use ($dataSourceName): array {
+                $overridingConfiguration = $this->parseYamlFile(
+                    sprintf(self::BUNDLE_CONFIG_PATH, $bundle->getPath(), $dataSourceName)
+                );
+                if (true === is_array($overridingConfiguration)) {
+                    $configuration = $overridingConfiguration;
+                }
+
+                return $configuration;
+            },
+            []
+        );
     }
 
-    /**
-     * @param string $bundlePath
-     * @param string $dataSourceName
-     * @return mixed
-     */
-    protected function getDataSourceConfiguration($bundlePath, $dataSourceName)
-    {
-        $yamlParser = new Parser();
-        return $yamlParser->parse(file_get_contents(sprintf($bundlePath . '/Resources/config/datasource/%s.yml', $dataSourceName)));
-    }
-
-    /**
-     * @param DataSourceInterface $dataSource
-     * @param array $configuration
-     */
-    protected function buildConfiguration(DataSourceInterface $dataSource, array $configuration)
+    private function buildConfiguration(DataSourceInterface $dataSource, array $configuration): void
     {
         foreach ($configuration['fields'] as $name => $field) {
-            $type = array_key_exists('type', $field)
-                ? $field['type']
-                : null;
-            $comparison = array_key_exists('comparison', $field)
-                ? $field['comparison']
-                : null;
-            $options = array_key_exists('options', $field)
-                ? $field['options']
-                : [];
-
-            $dataSource->addField($name, $type, $comparison, $options);
+            $dataSource->addField(
+                $name,
+                $field['type'] ?? null,
+                $field['comparison'] ?? null,
+                $field['options'] ?? []
+            );
         }
+    }
+
+    private function parseYamlFile(string $path)
+    {
+        return $this->yamlParser->parse(file_get_contents($path));
     }
 }

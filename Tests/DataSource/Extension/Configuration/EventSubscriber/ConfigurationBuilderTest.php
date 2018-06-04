@@ -15,6 +15,8 @@ use FSi\Component\DataSource\Event\DataSourceEvent\ParametersEventArgs;
 use FSi\Component\DataSource\Event\DataSourceEvents;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\Kernel;
 
@@ -40,6 +42,13 @@ class ConfigurationBuilderTest extends TestCase
 
     public function testReadConfigurationFromOneBundle()
     {
+        $container = $this->createMock(ContainerInterface::class);
+        $container->expects($this->once())
+            ->method('getParameter')
+            ->with('datasource.yaml.main_config')
+            ->willReturn(null)
+        ;
+        $this->kernel->expects($this->once())->method('getContainer')->willReturn($container);
         $this->kernel->expects($this->once())
             ->method('getBundles')
             ->will($this->returnCallback(function(): array {
@@ -51,10 +60,7 @@ class ConfigurationBuilderTest extends TestCase
                 return [$bundle];
             }));
 
-        $dataSource = $this->getMockBuilder(DataSourceInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
+        $dataSource = $this->createMock(DataSourceInterface::class);
         $dataSource->expects($this->any())->method('getName')->will($this->returnValue('news'));
         $dataSource->expects($this->once())->method('addField')->with('title', 'text', 'like', ['label' => 'Title']);
 
@@ -63,32 +69,107 @@ class ConfigurationBuilderTest extends TestCase
 
     public function testReadConfigurationFromManyBundles()
     {
+        $container = $this->createMock(ContainerInterface::class);
+        $container->expects($this->once())
+            ->method('getParameter')
+            ->with('datasource.yaml.main_config')
+            ->willReturn(null)
+        ;
+
+        $this->kernel->expects($this->once())->method('getContainer')->willReturn($container);
         $this->kernel->expects($this->once())
             ->method('getBundles')
             ->will($this->returnCallback(function(): array {
                 $fooBundle = $this->createMock(BundleInterface::class);
                 $fooBundle->expects($this->any())
                     ->method('getPath')
-                    ->will($this->returnValue(__DIR__ . '/../../../../Fixtures/FooBundle'));
+                    ->willReturn(__DIR__ . '/../../../../Fixtures/FooBundle');
 
                 $barBundle = $this->createMock(BundleInterface::class);
                 $barBundle->expects($this->any())
                     ->method('getPath')
-                    ->will($this->returnValue(__DIR__ . '/../../../../Fixtures/BarBundle'))
+                    ->willReturn(__DIR__ . '/../../../../Fixtures/BarBundle')
                 ;
 
                 return [$fooBundle, $barBundle];
             }));
 
-        $dataSource = $this->getMockBuilder(DataSourceInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
+        $dataSource = $this->createMock(DataSourceInterface::class);
         $dataSource->expects($this->any())->method('getName')->will($this->returnValue('news'));
 
-        // 0 - 3 getName() is called
-        $dataSource->expects($this->at(4))->method('addField')->with('title', 'text', 'like', ['label' => 'News Title']);
-        $dataSource->expects($this->at(5))->method('addField')->with('author', null, null, []);
+        // 0 - 1 getName() is called
+        $dataSource->expects($this->at(2))->method('addField')->with('title', 'text', 'like', ['label' => 'News Title']);
+        $dataSource->expects($this->at(3))->method('addField')->with('author', null, null, []);
+
+        $this->subscriber->readConfiguration(new ParametersEventArgs($dataSource, []));
+    }
+
+    public function testMainConfigurationOverridesBundles()
+    {
+        $container = $this->createMock(ContainerInterface::class);
+        $container->expects($this->once())
+            ->method('getParameter')
+            ->with('datasource.yaml.main_config')
+            ->willReturn(sprintf('%s/../../../../Resources/config/main_directory', __DIR__))
+        ;
+
+        $this->kernel->expects($this->once())->method('getContainer')->willReturn($container);
+        $this->kernel->expects($this->never())->method('getBundles');
+
+        $dataSource = $this->createMock(DataSourceInterface::class);
+        $dataSource->expects($this->any())->method('getName')->will($this->returnValue('news'));
+
+        // 0  is when getName() is called
+        $dataSource->expects($this->at(1))->method('addField')->with('title_short', 'text', null, ['label' => 'Short title']);
+        $dataSource->expects($this->at(2))->method('addField')->with('created_at', 'date', null, ['label' => 'Created at']);
+
+        $this->subscriber->readConfiguration(new ParametersEventArgs($dataSource, []));
+    }
+
+    public function testBundleConfigUsedWhenNoFileFoundInMainDirectory()
+    {
+        $container = $this->createMock(ContainerInterface::class);
+        $container->expects($this->once())
+            ->method('getParameter')
+            ->with('datasource.yaml.main_config')
+            ->willReturn(sprintf('%s/../../../../Resources/config/main_directory', __DIR__))
+        ;
+
+        $this->kernel->expects($this->once())->method('getContainer')->willReturn($container);
+        $this->kernel->expects($this->once())
+            ->method('getBundles')
+            ->will($this->returnCallback(function() {
+                $bundle = $this->createMock(BundleInterface::class);
+                $bundle->expects($this->any())
+                    ->method('getPath')
+                    ->willReturn(__DIR__ . '/../../../../Fixtures/FooBundle');
+
+                return [$bundle];
+            }));
+
+        $dataSource = $this->createMock(DataSourceInterface::class);
+        $dataSource->expects($this->any())->method('getName')->will($this->returnValue('user'));
+        $dataSource->expects($this->once())->method('addField')->with('username', 'text', null, []);
+
+        $this->subscriber->readConfiguration(new ParametersEventArgs($dataSource, []));
+    }
+
+    public function testExceptionThrownWhenMainConfigPathIsNotADirectory()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('"non existant directory" is not a directory!');
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->expects($this->once())
+            ->method('getParameter')
+            ->with('datasource.yaml.main_config')
+            ->willReturn('non existant directory')
+        ;
+
+        $this->kernel->expects($this->once())->method('getContainer')->willReturn($container);
+
+        $dataSource = $this->createMock(DataSourceInterface::class);
+        $dataSource->expects($this->any())->method('getName')->will($this->returnValue('news'));
 
         $this->subscriber->readConfiguration(new ParametersEventArgs($dataSource, []));
     }
@@ -97,9 +178,13 @@ class ConfigurationBuilderTest extends TestCase
     {
         $kernelMockBuilder = $this->getMockBuilder(Kernel::class)->setConstructorArgs(['dev', true]);
         if (version_compare(Kernel::VERSION, '2.7.0', '<')) {
-            $kernelMockBuilder->setMethods(['registerContainerConfiguration', 'registerBundles', 'getBundles', 'init']);
+            $kernelMockBuilder->setMethods(
+                ['registerContainerConfiguration', 'registerBundles', 'getBundles', 'getContainer', 'init']
+            );
         } else {
-            $kernelMockBuilder->setMethods(['registerContainerConfiguration', 'registerBundles', 'getBundles']);
+            $kernelMockBuilder->setMethods(
+                ['registerContainerConfiguration', 'registerBundles', 'getBundles', 'getContainer']
+            );
         }
         $this->kernel = $kernelMockBuilder->getMock();
         $this->subscriber = new ConfigurationBuilder($this->kernel);

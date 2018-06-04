@@ -10,15 +10,13 @@
 namespace FSi\Bundle\DataSourceBundle\DependencyInjection;
 
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 class FSIDataSourceExtension extends Extension
 {
-    /**
-     * {@inheritDoc}
-     */
     public function load(array $configs, ContainerBuilder $container)
     {
         $configuration = new Configuration();
@@ -31,10 +29,15 @@ class FSIDataSourceExtension extends Extension
 
         if (isset($config['yaml_configuration']) && $config['yaml_configuration']) {
             $loader->load('datasource_yaml_configuration.xml');
+            $container->setParameter(
+                'datasource.yaml.main_config',
+                $config['yaml_configuration']['main_configuration_directory']
+            );
         }
 
-        if(isset($config['twig']['enabled']) && $config['twig']['enabled']) {
-            $this->registerTwigConfiguration($config['twig'], $container, $loader);
+        if (isset($config['twig']['enabled']) && $config['twig']['enabled']) {
+            $loader->load('twig.xml');
+            $container->setParameter('datasource.twig.template', $config['twig']['template']);
         }
 
         if (method_exists($container, 'registerForAutoconfiguration')) {
@@ -42,16 +45,7 @@ class FSIDataSourceExtension extends Extension
         }
     }
 
-    public function registerTwigConfiguration(array $config, ContainerBuilder $container, XmlFileLoader $loader)
-    {
-        $loader->load('twig.xml');
-        $container->setParameter('datasource.twig.template', $config['template']);
-    }
-
-    /**
-     * @param $loader
-     */
-    private function registerDrivers($loader)
+    private function registerDrivers(LoaderInterface $loader): void
     {
         $loader->load('driver/collection.xml');
         /* doctrine driver is loaded for compatibility with fsi/datasource 1.x only */
@@ -66,7 +60,7 @@ class FSIDataSourceExtension extends Extension
         }
     }
 
-    private function registerForAutoconfiguration(ContainerBuilder $container)
+    private function registerForAutoconfiguration(ContainerBuilder $container): void
     {
         $container->registerForAutoconfiguration('FSi\Component\DataSource\Driver\DriverFactoryInterface')
             ->addTag('datasource.driver.factory');
