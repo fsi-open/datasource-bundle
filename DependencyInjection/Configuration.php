@@ -20,12 +20,29 @@ class Configuration implements ConfigurationInterface
         $rootNode = $tb->root('fsi_data_source');
         $rootNode
             ->children()
-                ->booleanNode('yaml_configuration')->defaultTrue()->end()
+                ->arrayNode('yaml_configuration')
+                    ->beforeNormalization()
+                        ->ifTrue(function ($value): bool {
+                            return true === $value || false === $value;
+                        })
+                        ->then(function ($value): array {
+                            return ['enabled' => $value, 'main_configuration_directory' => null];
+                        })
+                    ->end()
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('enabled')->defaultTrue()->end()
+                        ->scalarNode('main_configuration_directory')->defaultNull()->end()
+                    ->end()
+                ->end()
                 ->arrayNode('twig')
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->booleanNode('enabled')->defaultTrue()->end()
-                        ->scalarNode('template')->defaultValue('datasource.html.twig')->end()
+                        ->arrayNode('themes')
+                            ->prototype('scalar')->end()
+                            ->defaultValue(['datasource.html.twig'])
+                        ->end()
                     ->end()
                 ->end()
             ->end()

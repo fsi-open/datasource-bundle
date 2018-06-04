@@ -1,0 +1,10 @@
+---
+fields:
+    title_short:
+        type: text
+        options:
+            label: Short title
+    created_at:
+        type: date
+        options:
+            label: Created at

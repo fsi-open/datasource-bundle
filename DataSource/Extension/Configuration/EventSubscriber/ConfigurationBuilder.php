@@ -12,6 +12,7 @@ namespace FSi\Bundle\DataSourceBundle\DataSource\Extension\Configuration\EventSu
 use FSi\Component\DataSource\DataSourceInterface;
 use FSi\Component\DataSource\Event\DataSourceEvent\ParametersEventArgs;
 use FSi\Component\DataSource\Event\DataSourceEvents;
+use RuntimeException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -20,6 +21,7 @@ use Symfony\Component\Yaml\Parser;
 class ConfigurationBuilder implements EventSubscriberInterface
 {
     private const BUNDLE_CONFIG_PATH = '%s/Resources/config/datasource/%s.yml';
+    private const MAIN_CONFIG_DIRECTORY = 'datasource.yaml.main_config';
 
     /**
      * @var KernelInterface
@@ -45,6 +47,40 @@ class ConfigurationBuilder implements EventSubscriberInterface
     public function readConfiguration(ParametersEventArgs $event)
     {
         $dataSource = $event->getDataSource();
+        $mainConfiguration = $this->getMainConfiguration($dataSource->getName());
+        if (null !== $mainConfiguration) {
+            $this->buildConfiguration($dataSource, $mainConfiguration);
+        } else {
+            $this->buildConfigurationFromRegisteredBundles($dataSource);
+        }
+    }
+
+    private function getMainConfiguration(string $dataSourceName): ?array
+    {
+        $directory = $this->kernel->getContainer()->getParameter(self::MAIN_CONFIG_DIRECTORY);
+        if (null === $directory) {
+            return null;
+        }
+
+        if (false === is_dir($directory)) {
+            throw new RuntimeException(sprintf('"%s" is not a directory!', $directory));
+        }
+
+        $configurationFile = sprintf('%s/%s.yml', rtrim($directory, '/'), $dataSourceName);
+        if (false === file_exists($configurationFile)) {
+            return null;
+        }
+
+        $configuration = $this->parseYamlFile($configurationFile);
+        if (false === is_array($configuration)) {
+            return null;
+        }
+
+        return $configuration;
+    }
+
+    private function buildConfigurationFromRegisteredBundles(DataSourceInterface $dataSource): void
+    {
         $dataSourceName = $dataSource->getName();
         $bundles = $this->kernel->getBundles();
         $eligibleBundles = array_filter(
