@@ -13,88 +13,52 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Driver\DriverExtension;
+use FSi\Bundle\DataSourceBundle\Tests\Fixtures\News;
 use FSi\Bundle\DataSourceBundle\Tests\Fixtures\TestManagerRegistry;
 use FSi\Component\DataSource\DataSourceInterface;
+use FSi\Component\DataSource\Driver\DriverInterface;
 use FSi\Component\DataSource\Event\FieldEvent;
 use FSi\Component\DataSource\Field\FieldAbstractExtension;
+use FSi\Component\DataSource\Field\FieldTypeInterface;
+use FSi\Component\DataSource\Field\FieldViewInterface;
+use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Doctrine\Form\DoctrineOrmExtension;
-use Symfony\Component\Form;
+use Symfony\Component\Form\Extension\Core\CoreExtension;
+use Symfony\Component\Form\Extension\Csrf\CsrfExtension;
 use Symfony\Component\Form\Extension\Csrf\CsrfProvider\DefaultCsrfProvider;
+use Symfony\Component\Form\FormFactory;
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormRegistry;
+use Symfony\Component\Form\ResolvedFormTypeFactory;
 use Symfony\Component\HttpKernel\Kernel;
-use Symfony\Component\Security;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
+use Symfony\Component\Translation\TranslatorInterface;
 
-/**
- * Tests for Symfony Form Extension.
- */
-class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
+class FormExtensionEntityTest extends TestCase
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function setUp()
-    {
-        if (!class_exists('Symfony\Component\Form\Form')) {
-            $this->markTestSkipped('Symfony Form needed!');
-        }
-
-        if (!class_exists('Doctrine\ORM\EntityManager')) {
-            $this->markTestSkipped('Doctrine ORM needed!');
-        }
-    }
-
-    /**
-     * Checks entity field.
-     */
     public function testEntityField()
     {
-        $type = 'entity';
         $formFactory = $this->getFormFactory();
-        $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
+        $translator = $this->createMock(TranslatorInterface::class);
         $extension = new DriverExtension($formFactory, $translator);
-        $field = $this->getMock('FSi\Component\DataSource\Field\FieldTypeInterface');
-        $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', [], [$driver]);
+        $field = $this->createMock(FieldTypeInterface::class);
+        $driver = $this->createMock(DriverInterface::class);
+        $datasource = $this->createMock(DataSourceInterface::class, [], [$driver]);
 
-        $datasource
-            ->expects($this->any())
-            ->method('getName')
-            ->will($this->returnValue('datasource'))
-        ;
+        $datasource->expects($this->any())->method('getName')->will($this->returnValue('datasource'));
 
-        $field
-            ->expects($this->atLeastOnce())
-            ->method('getName')
-            ->will($this->returnValue('name'))
-        ;
-
-        $field
-            ->expects($this->any())
-            ->method('getDataSource')
-            ->will($this->returnValue($datasource))
-        ;
-
-        $field
-            ->expects($this->any())
-            ->method('getName')
-            ->will($this->returnValue('name'))
-        ;
-
-        $field
-            ->expects($this->any())
-            ->method('getType')
-            ->will($this->returnValue('entity'))
-        ;
+        $field->expects($this->atLeastOnce())->method('getName')->will($this->returnValue('name'));
+        $field->expects($this->any())->method('getDataSource')->will($this->returnValue($datasource));
+        $field->expects($this->any())->method('getName')->will($this->returnValue('name'));
+        $field->expects($this->any())->method('getType')->will($this->returnValue('entity'));
 
         $field
             ->expects($this->any())
             ->method('hasOption')
-            ->will($this->returnCallback(function () {
+            ->will($this->returnCallback(function (): bool {
                 $args = func_get_args();
-                if (array_shift($args) == 'form_options') {
-                    return true;
-                }
-                return false;
+
+                return 'form_options' === array_shift($args);
             }))
         ;
 
@@ -105,17 +69,13 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
                 switch (func_get_arg(0)) {
                     case 'form_filter':
                         return true;
-
                     case 'form_options':
-                        return [
-                            'class' => 'FSi\Bundle\DataSourceBundle\Tests\Fixtures\News',
-                        ];
+                        return ['class' => News::class];
                 }
             }))
         ;
 
-        $extensions = $extension->getFieldTypeExtensions($type);
-
+        $extensions = $extension->getFieldTypeExtensions('entity');
         $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => 'value']]];
         //Form extension will remove 'name' => 'value' since this is not valid entity id (since we have no entities at all).
         $parameters2 = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => []]];
@@ -126,12 +86,9 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
         }
         $parameters = $args->getParameter();
         $this->assertEquals($parameters2, $parameters);
-        $fieldView = $this->getMock('FSi\Component\DataSource\Field\FieldViewInterface', [], [$field]);
 
-        $fieldView
-            ->expects($this->atLeastOnce())
-            ->method('setAttribute')
-        ;
+        $fieldView = $this->createMock(FieldViewInterface::class, [], [$field]);
+        $fieldView->expects($this->atLeastOnce())->method('setAttribute');
 
         $args = new FieldEvent\ViewEventArgs($field, $fieldView);
         foreach ($extensions as $ext) {
@@ -139,10 +96,7 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    /**
-     * @return Form\FormFactory
-     */
-    private function getFormFactory()
+    private function getFormFactory(): FormFactoryInterface
     {
         if (version_compare(Kernel::VERSION, '3.0.0', '>=')) {
             $tokenManager = new CsrfTokenManager();
@@ -150,36 +104,25 @@ class FormExtensionEntityTest extends \PHPUnit_Framework_TestCase
             $tokenManager = new DefaultCsrfProvider('tests');
         }
 
-        $typeFactory = new Form\ResolvedFormTypeFactory();
-        $registry = new Form\FormRegistry(
+        $typeFactory = new ResolvedFormTypeFactory();
+        $registry = new FormRegistry(
             [
-                new Form\Extension\Core\CoreExtension(),
-                new Form\Extension\Csrf\CsrfExtension($tokenManager),
+                new CoreExtension(),
+                new CsrfExtension($tokenManager),
                 new DoctrineOrmExtension(new TestManagerRegistry($this->getEntityManager())),
             ],
             $typeFactory
         );
 
-        return new Form\FormFactory($registry, $typeFactory);
+        return new FormFactory($registry, $typeFactory);
     }
 
-    /**
-     * @return EntityManager
-     */
-    private function getEntityManager()
+    private function getEntityManager(): EntityManager
     {
-        $dbParams = [
-            'driver' => 'pdo_sqlite',
-            'memory' => true,
-        ];
-
         $config = Setup::createAnnotationMetadataConfiguration([__DIR__ . '/../../Fixtures'], true, null, null, false);
-        $em = EntityManager::create($dbParams, $config);
+        $em = EntityManager::create(['driver' => 'pdo_sqlite', 'memory' => true], $config);
         $tool = new SchemaTool($em);
-        $classes = [
-            $em->getClassMetadata('FSi\Bundle\DataSourceBundle\Tests\Fixtures\News'),
-        ];
-        $tool->createSchema($classes);
+        $tool->createSchema([$em->getClassMetadata(News::class)]);
 
         return $em;
     }

@@ -10,22 +10,19 @@
 namespace FSi\Bundle\DataSourceBundle\Tests\Extension\Symfony;
 
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Core\CoreExtension;
-use Symfony\Component\HttpFoundation\Request;
+use FSi\Component\DataSource\DataSourceInterface;
+use FSi\Component\DataSource\Driver\DriverInterface;
 use FSi\Component\DataSource\Event\DataSourceEvent;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
 
-/**
- * Tests for Symfony Core Extension.
- */
-class CoreExtensionTest extends \PHPUnit_Framework_TestCase
+class CoreExtensionTest extends TestCase
 {
-    /**
-     * Checks if Request if converted correctly.
-     */
     public function testBindParameters()
     {
         $extension = new CoreExtension();
-        $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', [], [$driver]);
+        $driver = $this->createMock(DriverInterface::class);
+        $datasource = $this->createMock(DataSourceInterface::class);
         $data1 = ['key1' => 'value1', 'key2' => 'value2'];
         $data2 = $data1;
 

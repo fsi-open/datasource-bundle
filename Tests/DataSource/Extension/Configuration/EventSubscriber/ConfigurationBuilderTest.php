@@ -10,117 +10,98 @@
 namespace FSi\Bundle\DataSourceBundle\Tests\DataSource\Extension\Configuration\EventSubscriber;
 
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Configuration\EventSubscriber\ConfigurationBuilder;
+use FSi\Component\DataSource\DataSourceInterface;
 use FSi\Component\DataSource\Event\DataSourceEvent\ParametersEventArgs;
 use FSi\Component\DataSource\Event\DataSourceEvents;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\Kernel;
-use Symfony\Component\HttpKernel\KernelInterface;
 
-class ConfigurationBuilderTest extends \PHPUnit_Framework_TestCase
+class ConfigurationBuilderTest extends TestCase
 {
     /**
-     * @var KernelInterface
+     * @var MockObject
      */
-    protected $kernel;
+    private $kernel;
 
     /**
-     * @var ConfigurationBuilder
+     * @var MockObject
      */
-    protected $subscriber;
-
-    public function setUp()
-    {
-        $kernelMockBuilder = $this->getMockBuilder('Symfony\Component\HttpKernel\Kernel')
-            ->setConstructorArgs(['dev', true]);
-        if (version_compare(Kernel::VERSION, '2.7.0', '<')) {
-            $kernelMockBuilder->setMethods(['registerContainerConfiguration', 'registerBundles', 'getBundles', 'init']);
-        } else {
-            $kernelMockBuilder->setMethods(['registerContainerConfiguration', 'registerBundles', 'getBundles']);
-        }
-        $this->kernel = $kernelMockBuilder->getMock();
-
-        $this->subscriber = new ConfigurationBuilder($this->kernel);
-    }
+    private $subscriber;
 
     public function testSubscribedEvents()
     {
         $this->assertEquals(
-            $this->subscriber->getSubscribedEvents(),
+            ConfigurationBuilder::getSubscribedEvents(),
             [DataSourceEvents::PRE_BIND_PARAMETERS => ['readConfiguration', 1024]]
         );
     }
 
     public function testReadConfigurationFromOneBundle()
     {
-        $self = $this;
         $this->kernel->expects($this->once())
             ->method('getBundles')
-            ->will($this->returnCallback(function() use ($self) {
-                $bundle = $self->getMock('Symfony\Component\HttpKernel\Bundle\Bundle', ['getPath']);
-                $bundle->expects($self->any())
+            ->will($this->returnCallback(function(): array {
+                $bundle = $this->createMock(BundleInterface::class, ['getPath']);
+                $bundle->expects($this->any())
                     ->method('getPath')
-                    ->will($self->returnValue(__DIR__ . '/../../../../Fixtures/FooBundle'));
+                    ->will($this->returnValue(__DIR__ . '/../../../../Fixtures/FooBundle'));
 
                 return [$bundle];
             }));
 
-        $dataSource = $this->getMockBuilder('FSi\Component\DataSource\DataSource')
+        $dataSource = $this->getMockBuilder(DataSourceInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $dataSource->expects($this->any())
-            ->method('getName')
-            ->will($this->returnValue('news'));
+        $dataSource->expects($this->any())->method('getName')->will($this->returnValue('news'));
+        $dataSource->expects($this->once())->method('addField')->with('title', 'text', 'like', ['label' => 'Title']);
 
-        $dataSource->expects($this->once())
-            ->method('addField')
-            ->with('title', 'text', 'like', ['label' => 'Title']);
-
-        $event = new ParametersEventArgs($dataSource, []);
-
-        $this->subscriber->readConfiguration($event);
+        $this->subscriber->readConfiguration(new ParametersEventArgs($dataSource, []));
     }
 
     public function testReadConfigurationFromManyBundles()
     {
-        $self = $this;
         $this->kernel->expects($this->once())
             ->method('getBundles')
-            ->will($this->returnCallback(function() use ($self) {
-                $fooBundle = $self->getMock('Symfony\Component\HttpKernel\Bundle\Bundle', ['getPath']);
-                $fooBundle->expects($self->any())
+            ->will($this->returnCallback(function(): array {
+                $fooBundle = $this->createMock(BundleInterface::class);
+                $fooBundle->expects($this->any())
                     ->method('getPath')
-                    ->will($self->returnValue(__DIR__ . '/../../../../Fixtures/FooBundle'));
+                    ->will($this->returnValue(__DIR__ . '/../../../../Fixtures/FooBundle'));
 
-                $barBundle = $self->getMock('Symfony\Component\HttpKernel\Bundle\Bundle', ['getPath']);
-                $barBundle->expects($self->any())
+                $barBundle = $this->createMock(BundleInterface::class);
+                $barBundle->expects($this->any())
                     ->method('getPath')
-                    ->will($self->returnValue(__DIR__ . '/../../../../Fixtures/BarBundle'));
-                return [
-                    $fooBundle,
-                    $barBundle
-                ];
+                    ->will($this->returnValue(__DIR__ . '/../../../../Fixtures/BarBundle'))
+                ;
+
+                return [$fooBundle, $barBundle];
             }));
 
-        $dataSource = $this->getMockBuilder('FSi\Component\DataSource\DataSource')
+        $dataSource = $this->getMockBuilder(DataSourceInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $dataSource->expects($this->any())
-            ->method('getName')
-            ->will($this->returnValue('news'));
+        $dataSource->expects($this->any())->method('getName')->will($this->returnValue('news'));
 
         // 0 - 3 getName() is called
-        $dataSource->expects($this->at(4))
-            ->method('addField')
-            ->with('title', 'text', 'like', ['label' => 'News Title']);
+        $dataSource->expects($this->at(4))->method('addField')->with('title', 'text', 'like', ['label' => 'News Title']);
+        $dataSource->expects($this->at(5))->method('addField')->with('author', null, null, []);
 
-        $dataSource->expects($this->at(5))
-            ->method('addField')
-            ->with('author', null, null, []);
+        $this->subscriber->readConfiguration(new ParametersEventArgs($dataSource, []));
+    }
 
-
-        $event = new ParametersEventArgs($dataSource, []);
-
-        $this->subscriber->readConfiguration($event);
+    protected function setUp()
+    {
+        $kernelMockBuilder = $this->getMockBuilder(Kernel::class)->setConstructorArgs(['dev', true]);
+        if (version_compare(Kernel::VERSION, '2.7.0', '<')) {
+            $kernelMockBuilder->setMethods(['registerContainerConfiguration', 'registerBundles', 'getBundles', 'init']);
+        } else {
+            $kernelMockBuilder->setMethods(['registerContainerConfiguration', 'registerBundles', 'getBundles']);
+        }
+        $this->kernel = $kernelMockBuilder->getMock();
+        $this->subscriber = new ConfigurationBuilder($this->kernel);
     }
 }

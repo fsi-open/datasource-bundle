@@ -15,11 +15,6 @@ use FSi\Bundle\DataSourceBundle\DependencyInjection\Compiler\DataSourcePass;
 use FSi\Bundle\DataSourceBundle\DependencyInjection\Compiler\TemplatePathPass;
 use FSi\Bundle\DataSourceBundle\DependencyInjection\FSIDataSourceExtension;
 
-/**
- * FSiDataSourceBundle.
- *
- * @author Lukasz Cybula <lukasz@fsi.pl>
- */
 class DataSourceBundle extends Bundle
 {
     public function build(ContainerBuilder $container)

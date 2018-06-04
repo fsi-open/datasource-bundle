@@ -9,8 +9,7 @@
 
 namespace FSi\Bundle\DataSourceBundle\Tests\Extension\Symfony;
 
-use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\QueryBuilder;
+use DateTime;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Driver\DriverExtension;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\EventSubscriber\Events;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Extension\DatasourceExtension;
@@ -18,35 +17,38 @@ use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Field\FormFiel
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Type\BetweenType;
 use FSi\Bundle\DataSourceBundle\Tests\Fixtures\Form as TestForm;
 use FSi\Component\DataSource\DataSourceInterface;
+use FSi\Component\DataSource\DataSourceViewInterface;
+use FSi\Component\DataSource\Driver\Collection\Extension\Core\Field\Boolean;
+use FSi\Component\DataSource\Driver\DriverInterface;
 use FSi\Component\DataSource\Event\DataSourceEvent\ViewEventArgs;
 use FSi\Component\DataSource\Event\FieldEvent;
+use FSi\Component\DataSource\Exception\DataSourceException;
 use FSi\Component\DataSource\Field\FieldAbstractExtension;
+use FSi\Component\DataSource\Field\FieldTypeInterface;
 use FSi\Component\DataSource\Field\FieldView;
-use Symfony\Bridge\Doctrine\Form\DoctrineOrmExtension;
+use FSi\Component\DataSource\Field\FieldViewInterface;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Symfony\Component\Form;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Csrf\CsrfProvider\DefaultCsrfProvider;
-use Symfony\Component\Security;
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormTypeInterface;
+use Symfony\Component\Form\FormView;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 use Symfony\Component\Translation\TranslatorInterface;
 
-/**
- * Tests for Symfony Form Extension.
- */
-class FormExtensionTest extends \PHPUnit_Framework_TestCase
+class FormExtensionTest extends TestCase
 {
-    /**
-     * Provides types.
-     *
-     * @return array
-     */
-    public static function typesProvider()
+    public static function typesProvider(): array
     {
         return [
             ['text'],
             ['number'],
             ['date'],
             ['time'],
-            ['datetime'],
+            ['datetime']
         ];
     }
 
@@ -55,7 +57,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
      *
      * @return array
      */
-    public static function fieldTypesProvider()
+    public static function fieldTypesProvider(): array
     {
         return [
             ['text', 'isNull', 'choice'],
@@ -68,18 +70,8 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             ['time', 'isNull', 'choice'],
             ['time', 'eq', 'time'],
             ['date', 'isNull', 'choice'],
-            ['date', 'eq', 'date'],
+            ['date', 'eq', 'date']
         ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setUp()
-    {
-        if (!class_exists('Symfony\Component\Form\Form')) {
-            $this->markTestSkipped('Symfony Form needed!');
-        }
     }
 
     /**
@@ -88,9 +80,11 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
     public function testCreateDriverExtension()
     {
         $formFactory = $this->getFormFactory();
-        $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
+        $translator = $this->createMock(TranslatorInterface::class);
 
-        $extension = new DriverExtension($formFactory, $translator);
+        $driver = new DriverExtension($formFactory, $translator);
+        // Without an assertion the test would be marked as risky
+        $this->assertNotNull($driver);
     }
 
     /**
@@ -98,8 +92,10 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
      */
     public function testDriverExtension()
     {
+        $this->expectException(DataSourceException::class);
+
         $formFactory = $this->getFormFactory();
-        $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
+        $translator = $this->createMock(TranslatorInterface::class);
         $extension = new DriverExtension($formFactory, $translator);
 
         $this->assertTrue($extension->hasFieldTypeExtensions('text'));
@@ -116,22 +112,19 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         $extension->getFieldTypeExtensions('date');
         $extension->getFieldTypeExtensions('time');
         $extension->getFieldTypeExtensions('datetime');
-        $this->setExpectedException('FSi\Component\DataSource\Exception\DataSourceException');
         $extension->getFieldTypeExtensions('wrong');
     }
 
     public function testFormOrder()
     {
-        $self = $this;
-
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSourceInterface');
-        $view = $this->getMock('FSi\Component\DataSource\DataSourceViewInterface');
+        $datasource = $this->createMock(DataSourceInterface::class);
+        $view = $this->createMock(DataSourceViewInterface::class);
 
         $fields = [];
         $fieldViews = [];
         for ($i = 0; $i < 15; $i++) {
-            $field = $this->getMock('FSi\Component\DataSource\Field\FieldTypeInterface');
-            $fieldView = $this->getMock('FSi\Component\DataSource\Field\FieldViewInterface');
+            $field = $this->createMock(FieldTypeInterface::class);
+            $fieldView = $this->createMock(FieldViewInterface::class);
 
             unset($order);
             if ($i < 5) {
@@ -140,32 +133,14 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                 $order = $i - 10;
             }
 
-            $field
-                ->expects($this->any())
-                ->method('getName')
-                ->will($this->returnValue('field' . $i))
-            ;
-
-            $field
-                ->expects($this->any())
-                ->method('hasOption')
-                ->will($this->returnValue(isset($order)))
-            ;
+            $field->expects($this->any())->method('getName')->willReturn('field' . $i);
+            $field->expects($this->any())->method('hasOption')->willReturn(isset($order));
 
             if (isset($order)) {
-                $field
-                    ->expects($this->any())
-                    ->method('getOption')
-                    ->will($this->returnValue($order))
-                ;
+                $field->expects($this->any())->method('getOption')->willReturn($order);
             }
 
-            $fieldView
-                ->expects($this->any())
-                ->method('getName')
-                ->will($this->returnValue('field' . $i))
-            ;
-
+            $fieldView->expects($this->any())->method('getName')->willReturn('field' . $i);
             $fields['field' . $i] = $field;
             $fieldViews['field' . $i] = $fieldView;
             if (isset($order)) {
@@ -178,25 +153,22 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         $datasource
             ->expects($this->any())
             ->method('getField')
-            ->will($this->returnCallback(function($field) use ($fields) { return $fields[$field]; }))
+            ->will($this->returnCallback(function($field) use ($fields) {
+                return $fields[$field];
+            }))
         ;
 
-        $view
-            ->expects($this->any())
-            ->method('getFields')
-            ->will($this->returnValue($fieldViews))
-        ;
-
+        $view->expects($this->any())->method('getFields')->will($this->returnValue($fieldViews));
         $view
             ->expects($this->once())
             ->method('setFields')
-            ->will($this->returnCallback(function(array $fields) use ($self) {
+            ->will($this->returnCallback(function(array $fields) {
                 $names = [];
                 foreach ($fields as $field) {
                     $names[] = $field->getName();
                 }
 
-                $self->assertSame(
+                $this->assertSame(
                     [
                         'field0', 'field1', 'field2', 'field3', 'field5',
                         'field6', 'field7', 'field8', 'field9', 'field10', 'field4',
@@ -213,49 +185,25 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Checks fields behaviour.
-     *
-     * @dataProvider typesProvider
+     * @dataProvider typesProvider()
      */
-    public function testFields($type)
+    public function testFields(string $type)
     {
-        $self = $this;
         $formFactory = $this->getFormFactory();
-        $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
+        $translator = $this->createMock(TranslatorInterface::class);
         $extension = new DriverExtension($formFactory, $translator);
-        $field = $this->getMock('FSi\Component\DataSource\Field\FieldTypeInterface');
-        $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', [], [$driver]);
-
-        $datasource
-            ->expects($this->any())
-            ->method('getName')
-            ->will($this->returnValue('datasource'))
+        $driver = $this->createMock(DriverInterface::class);
+        $datasource = $this->getMockBuilder(DataSourceInterface::class)
+            ->setConstructorArgs([$driver])
+            ->getMock()
         ;
+        $datasource->expects($this->any())->method('getName')->willReturn('datasource');
 
-        $field
-            ->expects($this->atLeastOnce())
-            ->method('getName')
-            ->will($this->returnValue('name'))
-        ;
-
-        $field
-            ->expects($this->any())
-            ->method('getDataSource')
-            ->will($this->returnValue($datasource))
-        ;
-
-        $field
-            ->expects($this->any())
-            ->method('getType')
-            ->will($this->returnValue($type))
-        ;
-
-        $field
-            ->expects($this->any())
-            ->method('hasOption')
-            ->will($this->returnValue(false))
-        ;
+        $field = $this->createMock(FieldTypeInterface::class);
+        $field->expects($this->atLeastOnce())->method('getName')->willReturn('name');
+        $field->expects($this->any())->method('getDataSource')->willReturn($datasource);
+        $field->expects($this->any())->method('getType')->willReturn($type);
+        $field->expects($this->any())->method('hasOption')->willReturn(false);
 
         $field
             ->expects($this->any())
@@ -266,40 +214,62 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                         return true;
                     case 'form_from_options':
                     case 'form_to_options':
-                    case 'form_options':
                         return [];
+                    case 'form_options':
+                        return true === in_array($type, ['date', 'datetime'], true)
+                            // By default the year range for the date select widget
+                            // is 5 years into past.
+                            ? ['years' => range(2012, (int) date('Y'))]
+                            : []
+                        ;
                 }
             }))
         ;
 
         $extensions = $extension->getFieldTypeExtensions($type);
-
-        if ($type == 'datetime') {
-            $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' =>
-                [
-                    'date' => ['year' => 2012, 'month' => 12, 'day' => 12],
-                    'time' => ['hour' => 12, 'minute' => 12],
-                ],
-            ]]];
-            $parameters2 = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => new \DateTime('2012-12-12 12:12:00')]]];
-        } elseif ($type == 'time') {
-            $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' =>
-                [
-                    'hour' => 12,
-                    'minute' => 12,
-                ],
-            ]]];
-            $parameters2 = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => new \DateTime(date('Y-m-d', 0).' 12:12:00')]]];
-        } elseif ($type == 'date') {
-            $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' =>
-                [
-                    'year' => 2012,
-                    'month' => 12,
-                    'day' => 12,
-                ],
-            ]]];
-            $parameters2 = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => new \DateTime('2012-12-12')]]];
-        } elseif ($type == 'number') {
+        if ($type === 'datetime') {
+            $parameters = [
+                'datasource' => [
+                    DataSourceInterface::PARAMETER_FIELDS => [
+                        'name' => [
+                            'date' => ['year' => 2012, 'month' => 12, 'day' => 12],
+                            'time' => ['hour' => 12, 'minute' => 12],
+                        ]
+                    ]
+                ]
+            ];
+            $parameters2 = [
+                'datasource' => [
+                    DataSourceInterface::PARAMETER_FIELDS => [
+                        'name' => new DateTime('2012-12-12 12:12:00')
+                    ]
+                ]
+            ];
+        } elseif ($type === 'time') {
+            $parameters = [
+                'datasource' => [
+                    DataSourceInterface::PARAMETER_FIELDS => [
+                        'name' => ['hour' => 12, 'minute' => 12]
+                    ]
+                ]
+            ];
+            $parameters2 = [
+                'datasource' => [
+                    DataSourceInterface::PARAMETER_FIELDS => [
+                        'name' => new DateTime(date('Y-m-d', 0).' 12:12:00')
+                    ]
+                ]
+            ];
+        } elseif ($type === 'date') {
+            $parameters = [
+                'datasource' => [
+                    DataSourceInterface::PARAMETER_FIELDS => [
+                        'name' => ['year' => 2012, 'month' => 12, 'day' => 12]
+                    ]
+                ]
+            ];
+            $parameters2 = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => new DateTime('2012-12-12')]]];
+        } elseif ($type === 'number') {
             $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => 123]]];
             $parameters2 = $parameters;
         } else {
@@ -312,16 +282,19 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($ext instanceof FieldAbstractExtension);
             $ext->preBindParameter($args);
         }
-        $parameters = $args->getParameter();
-        $this->assertEquals($parameters2, $parameters);
-        $fieldView = $this->getMock('FSi\Component\DataSource\Field\FieldViewInterface', [], [$field]);
+
+        $this->assertEquals($parameters2, $args->getParameter());
+        $fieldView = $this->getMockBuilder(FieldViewInterface::class)
+            ->setConstructorArgs([$field])
+            ->getMock()
+        ;
 
         $fieldView
             ->expects($this->atLeastOnce())
             ->method('setAttribute')
-            ->will($this->returnCallback(function ($attribute, $value) use ($self, $type) {
-                if ($attribute == 'form') {
-                    $self->assertInstanceOf('\Symfony\Component\Form\FormView', $value);
+            ->will($this->returnCallback(function ($attribute, $value) use ($type) {
+                if ($attribute === 'form') {
+                    $this->assertInstanceOf(FormView::class, $value);
                 }
             }))
         ;
@@ -333,59 +306,27 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Checks types of generated fields
-     *
      * @dataProvider fieldTypesProvider
      */
-    public function testFormFields($type, $comparison, $expected)
+    public function testFormFields(string $type, string $comparison, $expected)
     {
         $formFactory = $this->getFormFactory();
         $translator = $this->getTranslator();
         $extension = new DriverExtension($formFactory, $translator);
-        $field = $this->getMock('FSi\Component\DataSource\Field\FieldTypeInterface');
-        $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', [], [$driver]);
+        $driver = $this->createMock(DriverInterface::class);
+        $datasource = $this->createMock(DataSourceInterface::class, [], [$driver]);
+        $datasource->expects($this->any())->method('getName')->willReturn('datasource');
 
-        $datasource
-            ->expects($this->any())
-            ->method('getName')
-            ->will($this->returnValue('datasource'))
-        ;
-
-        $field
-            ->expects($this->atLeastOnce())
-            ->method('getName')
-            ->will($this->returnValue('name'))
-        ;
-
-        $field
-            ->expects($this->any())
-            ->method('getDataSource')
-            ->will($this->returnValue($datasource))
-        ;
-
-        $field
-            ->expects($this->any())
-            ->method('getType')
-            ->will($this->returnValue($type))
-        ;
-
-        $field
-            ->expects($this->any())
-            ->method('hasOption')
-            ->will($this->returnValue(false))
-        ;
-
-        $field
-            ->expects($this->any())
-            ->method('getComparison')
-            ->will($this->returnValue($comparison))
-        ;
-
+        $field = $this->createMock(FieldTypeInterface::class);
+        $field->expects($this->atLeastOnce())->method('getName')->willReturn('name');
+        $field->expects($this->any())->method('getDataSource')->willReturn($datasource);
+        $field->expects($this->any())->method('getType')->willReturn($type);
+        $field->expects($this->any())->method('hasOption')->willReturn(false);
+        $field->expects($this->any())->method('getComparison')->willReturn($comparison);
         $field
             ->expects($this->any())
             ->method('getOption')
-            ->will($this->returnCallback(function($option) use ($type) {
+            ->will($this->returnCallback(function($option) {
                 switch ($option) {
                     case 'form_filter':
                         return true;
@@ -402,10 +343,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         ;
         $extensions = $extension->getFieldTypeExtensions($type);
 
-        $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' =>
-            'null'
-        ]]];
-
+        $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => 'null']]];
         $args = new FieldEvent\ParameterEventArgs($field, $parameters);
 
         $view = new FieldView($field);
@@ -420,7 +358,7 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($expected, $form['fields']['name']->vars['block_prefixes'][1]);
 
-        if ($comparison == 'isNull') {
+        if ($comparison === 'isNull') {
             $this->assertEquals(
                 'is_null_translated',
                 $form['fields']['name']->vars['choices'][0]->label
@@ -437,22 +375,13 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         $formFactory = $this->getFormFactory();
         $translator = $this->getTranslator();
         $formFieldExtension = new FormFieldExtension($formFactory, $translator);
-        $field = $this->getMock('FSi\Component\DataSource\Driver\Collection\Extension\Core\Field\Boolean');
-        $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', [], [$driver]);
+        $driver = $this->createMock(DriverInterface::class);
+        $datasource = $this->createMock(DataSourceInterface::class, [], [$driver]);
 
-        $field->expects($this->atLeastOnce())
-            ->method('getName')
-            ->will($this->returnValue('name'));
-
-        $field->expects($this->atLeastOnce())
-            ->method('getDataSource')
-            ->will($this->returnValue($datasource));
-
-        $field->expects($this->atLeastOnce())
-            ->method('getType')
-            ->will($this->returnValue('boolean'));
-
+        $field = $this->createMock(Boolean::class);
+        $field->expects($this->atLeastOnce())->method('getName')->willReturn('name');
+        $field->expects($this->atLeastOnce())->method('getDataSource')->willReturn($datasource);
+        $field->expects($this->atLeastOnce())->method('getType')->willReturn('boolean');
         $field->expects($this->atLeastOnce())
             ->method('getOption')
             ->will($this->returnCallback(function($option) {
@@ -462,21 +391,13 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                     case 'form_options':
                         return [
                             'choices' => $this->isSymfonyForm27()
-                                ? [
-                                    'tak' => '1',
-                                    'nie' => '0',
-                                ] : [
-                                    '1' => 'tak',
-                                    '0' => 'nie',
-                                ]
+                                ? ['tak' => '1', 'nie' => '0']
+                                : ['1' => 'tak', '0' => 'nie']
                         ];
                 }
             }));
 
-        $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' =>
-            'null'
-        ]]];
-
+        $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => 'null']]];
         $args = new FieldEvent\ParameterEventArgs($field, $parameters);
 
         $view = new FieldView($field);
@@ -498,22 +419,13 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         $formFactory = $this->getFormFactory();
         $translator = $this->getTranslator();
         $formFieldExtension = new FormFieldExtension($formFactory, $translator);
-        $field = $this->getMock('FSi\Component\DataSource\Driver\Collection\Extension\Core\Field\Boolean');
-        $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', [], [$driver]);
+        $driver = $this->createMock(DriverInterface::class);
+        $datasource = $this->createMock(DataSourceInterface::class, [], [$driver]);
 
-        $field->expects($this->atLeastOnce())
-            ->method('getName')
-            ->will($this->returnValue('name'));
-
-        $field->expects($this->atLeastOnce())
-            ->method('getDataSource')
-            ->will($this->returnValue($datasource));
-
-        $field->expects($this->atLeastOnce())
-            ->method('getType')
-            ->will($this->returnValue('boolean'));
-
+        $field = $this->createMock(Boolean::class);
+        $field->expects($this->atLeastOnce())->method('getName')->willReturn('name');
+        $field->expects($this->atLeastOnce())->method('getDataSource')->willReturn($datasource);
+        $field->expects($this->atLeastOnce())->method('getType')->willReturn('boolean');
         $field->expects($this->atLeastOnce())
             ->method('getOption')
             ->will($this->returnCallback(function($option) {
@@ -525,11 +437,10 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                 }
             }));
 
-        $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' =>
-            'null'
-        ]]];
-
-        $args = new FieldEvent\ParameterEventArgs($field, $parameters);
+        $args = new FieldEvent\ParameterEventArgs(
+            $field,
+            ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => 'null']]]
+        );
 
         $view = new FieldView($field);
         $viewEventArgs = new FieldEvent\ViewEventArgs($field, $view);
@@ -548,39 +459,24 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider getDatasourceFieldTypes
      */
-    public function testCreateDataSourceFieldWithCustomFormType(
-        $dataSourceFieldType,
-        $comparison = null
-    ) {
+    public function testCreateDataSourceFieldWithCustomFormType(string $dataSourceFieldType, string $comparison = null)
+    {
         $formFactory = $this->getFormFactory();
         $translator = $this->getTranslator();
         $formFieldExtension = new FormFieldExtension($formFactory, $translator);
-        $field = $this->getMock('FSi\Component\DataSource\Field\FieldTypeInterface');
-        $driver = $this->getMock('FSi\Component\DataSource\Driver\DriverInterface');
-        $datasource = $this->getMock('FSi\Component\DataSource\DataSource', [], [$driver]);
+        $field = $this->createMock(FieldTypeInterface::class);
+        $driver = $this->createMock(DriverInterface::class);
+        $datasource = $this->createMock(DataSourceInterface::class, [], [$driver]);
 
-        $field->expects($this->atLeastOnce())
-              ->method('getName')
-              ->will($this->returnValue('name'));
-
-        $field->expects($this->atLeastOnce())
-              ->method('getDataSource')
-              ->will($this->returnValue($datasource));
-
-        $field->expects($this->atLeastOnce())
-              ->method('getType')
-              ->will($this->returnValue($dataSourceFieldType));
-
-        $field->expects($this->atLeastOnce())
-              ->method('getComparison')
-              ->will($this->returnValue($comparison));
+        $field->expects($this->atLeastOnce())->method('getName')->willReturn('name');
+        $field->expects($this->atLeastOnce())->method('getDataSource')->willReturn($datasource);
+        $field->expects($this->atLeastOnce())->method('getType')->willReturn($dataSourceFieldType);
+        $field->expects($this->atLeastOnce())->method('getComparison')->willReturn($comparison);
 
         $options = [
             'form_filter' => true,
             'form_options' => [],
-            'form_type' => $this->isSymfonyForm27()
-                ? 'Symfony\Component\Form\Extension\Core\Type\HiddenType'
-                : 'hidden',
+            'form_type' => $this->isSymfonyForm27() ? HiddenType::class : 'hidden'
         ];
 
         $field->expects($this->atLeastOnce())
@@ -595,11 +491,10 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                   return $options[$option];
               }));
 
-        $args = new FieldEvent\ParameterEventArgs($field, [
-            'datasource' => [DataSourceInterface::PARAMETER_FIELDS => [
-                'name' => 'null'
-            ]]
-        ]);
+        $args = new FieldEvent\ParameterEventArgs(
+            $field,
+            ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => 'null']]]
+        );
 
         $view = new FieldView($field);
         $viewEventArgs = new FieldEvent\ViewEventArgs($field, $view);
@@ -608,7 +503,6 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
         $formFieldExtension->postBuildView($viewEventArgs);
 
         $form = $viewEventArgs->getView()->getAttribute('form');
-        $nameForm = $form['fields']['name'];
         $this->assertEquals('hidden', $form['fields']['name']->vars['block_prefixes'][1]);
     }
 
@@ -624,14 +518,11 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             ['date'],
             ['time'],
             ['datetime'],
-            ['boolean'],
+            ['boolean']
         ];
     }
 
-    /**
-     * @return Form\FormFactory
-     */
-    private function getFormFactory()
+    private function getFormFactory(): FormFactoryInterface
     {
         $typeFactory = new Form\ResolvedFormTypeFactory();
         $typeFactory->createResolvedType(new BetweenType(), []);
@@ -651,21 +542,20 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
             ],
             $typeFactory
         );
+
         return new Form\FormFactory($registry, $typeFactory);
     }
 
-    /**
-     * @return TranslatorInterface
-     */
-    private function getTranslator()
+    private function getTranslator(): MockObject
     {
-        $translator = $this->getMock('Symfony\Component\Translation\TranslatorInterface');
+        $translator = $this->createMock(TranslatorInterface::class);
         $translator->expects($this->any())
             ->method('trans')
             ->will($this->returnCallback(function ($id, array $params, $translation_domain) {
-                if ($translation_domain != 'DataSourceBundle') {
-                    throw new \RuntimeException(sprintf('Unknown translation domain %s', $translation_domain));
+                if ($translation_domain !== 'DataSourceBundle') {
+                    throw new RuntimeException(sprintf('Unknown translation domain %s', $translation_domain));
                 }
+
                 switch ($id) {
                     case 'datasource.form.choices.is_null':
                         return 'is_null_translated';
@@ -676,17 +566,15 @@ class FormExtensionTest extends \PHPUnit_Framework_TestCase
                     case 'datasource.form.choices.no':
                         return 'no_translated';
                     default:
-                        throw new \RuntimeException(sprintf('Unknown translation id %s', $id));
+                        throw new RuntimeException(sprintf('Unknown translation id %s', $id));
                 }
             }));
+
         return $translator;
     }
 
-    /**
-     * @return bool
-     */
-    private function isSymfonyForm27()
+    private function isSymfonyForm27(): bool
     {
-        return method_exists('Symfony\Component\Form\FormTypeInterface', 'configureOptions');
+        return method_exists(FormTypeInterface::class, 'configureOptions');
     }
 }
