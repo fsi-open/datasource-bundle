@@ -31,7 +31,7 @@ class ConfigurationTest extends TestCase
             ],
             'twig' => [
                 'enabled' => true,
-                'themes' => ['datasource.html.twig']
+                'template' => 'datasource.html.twig'
             ]
         ];
         $this->assertSame(
@@ -49,7 +49,7 @@ class ConfigurationTest extends TestCase
             ],
             'twig' => [
                 'enabled' => true,
-                'themes' => ['datasource.html.twig']
+                'template' => 'datasource.html.twig'
             ]
         ];
         $this->assertSame(
@@ -67,7 +67,7 @@ class ConfigurationTest extends TestCase
             ],
             'twig' => [
                 'enabled' => true,
-                'themes' => ['datasource.html.twig']
+                'template' => 'datasource.html.twig'
             ]
         ];
         $this->assertSame(
@@ -81,12 +81,12 @@ class ConfigurationTest extends TestCase
     public function testThemesOption()
     {
         $config = $this->processor->processConfiguration(new Configuration(), [
-            ['twig' => ['themes' => ['custom_datasource.html.twig']]]
+            ['twig' => ['template' => 'custom_datasource.html.twig']]
         ]);
 
         $this->assertSame(
             [
-                'twig' => ['themes' => ['custom_datasource.html.twig'], 'enabled' => true],
+                'twig' => ['template' => 'custom_datasource.html.twig', 'enabled' => true],
                 'yaml_configuration' => ['enabled' => true, 'main_configuration_directory' => null]
             ],
             $config
@@ -109,7 +109,7 @@ class ConfigurationTest extends TestCase
                     'main_configuration_directory' => 'a path to main configuration directory',
                     'enabled' => true
                 ],
-                'twig' => ['enabled' => true, 'themes' => ['datasource.html.twig']]
+                'twig' => ['enabled' => true, 'template' => 'datasource.html.twig']
             ],
             $config
         );
