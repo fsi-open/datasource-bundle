@@ -16,5 +16,6 @@ sudo: false
 before_script:
   - phpenv config-rm xdebug.ini
   - composer update $COMPOSER_FLAGS
+  - composer validate
 
 script: vendor/bin/phpunit
