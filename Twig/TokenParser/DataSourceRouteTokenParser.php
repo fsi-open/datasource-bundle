@@ -10,35 +10,32 @@
 namespace FSi\Bundle\DataSourceBundle\Twig\TokenParser;
 
 use FSi\Bundle\DataSourceBundle\Twig\Node\DataSourceRouteNode;
+use Twig\Node\Expression\ArrayExpression;
+use Twig\Token;
+use Twig\TokenParser\AbstractTokenParser;
 
-class DataSourceRouteTokenParser extends \Twig_TokenParser
+class DataSourceRouteTokenParser extends AbstractTokenParser
 {
-    /**
-     * {@inheritDoc}
-     */
-    public function parse(\Twig_Token $token)
+    public function parse(Token $token)
     {
         $stream = $this->parser->getStream();
         $dataSource = $this->parser->getExpressionParser()->parseExpression();
         $route = $this->parser->getExpressionParser()->parseExpression();
-        $additional_parameters = new \Twig_Node_Expression_Array([], $stream->getCurrent()->getLine());
+        $additional_parameters = new ArrayExpression([], $stream->getCurrent()->getLine());
 
-        if ($this->parser->getStream()->test(\Twig_Token::NAME_TYPE, 'with')) {
+        if ($this->parser->getStream()->test(Token::NAME_TYPE, 'with')) {
             $this->parser->getStream()->next();
 
-            if ($this->parser->getStream()->test(\Twig_Token::PUNCTUATION_TYPE) || $this->parser->getStream()->test(\Twig_Token::NAME_TYPE)) {
+            if ($this->parser->getStream()->test(Token::PUNCTUATION_TYPE) || $this->parser->getStream()->test(Token::NAME_TYPE)) {
                 $additional_parameters = $this->parser->getExpressionParser()->parseExpression();
             }
         }
 
-        $stream->expect(\Twig_Token::BLOCK_END_TYPE);
+        $stream->expect(Token::BLOCK_END_TYPE);
 
         return new DataSourceRouteNode($dataSource, $route, $additional_parameters, $token->getLine(), $this->getTag());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getTag()
     {
         return 'datasource_route';

@@ -38,9 +38,6 @@ class FormExtension extends DataSourceAbstractExtension
         $this->translator = $translator;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function loadDriverExtensions()
     {
         return [
@@ -48,9 +45,6 @@ class FormExtension extends DataSourceAbstractExtension
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function loadSubscribers()
     {
         return [

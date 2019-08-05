@@ -16,7 +16,6 @@ use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Driver\DriverE
 use FSi\Bundle\DataSourceBundle\Tests\Fixtures\News;
 use FSi\Bundle\DataSourceBundle\Tests\Fixtures\TestManagerRegistry;
 use FSi\Component\DataSource\DataSourceInterface;
-use FSi\Component\DataSource\Driver\DriverInterface;
 use FSi\Component\DataSource\Event\FieldEvent;
 use FSi\Component\DataSource\Field\FieldAbstractExtension;
 use FSi\Component\DataSource\Field\FieldTypeInterface;
@@ -42,8 +41,7 @@ class FormExtensionEntityTest extends TestCase
         $translator = $this->createMock(TranslatorInterface::class);
         $extension = new DriverExtension($formFactory, $translator);
         $field = $this->createMock(FieldTypeInterface::class);
-        $driver = $this->createMock(DriverInterface::class);
-        $datasource = $this->createMock(DataSourceInterface::class, [], [$driver]);
+        $datasource = $this->createMock(DataSourceInterface::class);
 
         $datasource->expects($this->any())->method('getName')->will($this->returnValue('datasource'));
 

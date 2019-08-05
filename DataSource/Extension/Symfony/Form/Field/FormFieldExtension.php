@@ -9,18 +9,28 @@
 
 namespace FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Field;
 
+use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Type\BetweenType;
+use FSi\Component\DataSource\DataSourceInterface;
+use FSi\Component\DataSource\Event\FieldEvent;
+use FSi\Component\DataSource\Event\FieldEvents;
 use FSi\Component\DataSource\Field\FieldAbstractExtension;
 use FSi\Component\DataSource\Field\FieldTypeInterface;
-use FSi\Component\DataSource\DataSourceInterface;
+use InvalidArgumentException;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\FormType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TimeType;
 use Symfony\Component\Form\FormFactory;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
-use FSi\Component\DataSource\Event\FieldEvents;
-use FSi\Component\DataSource\Event\FieldEvent;
+use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\Translation\TranslatorInterface;
 
-/**
- * Fields extension.
- */
 class FormFieldExtension extends FieldAbstractExtension
 {
     /**
@@ -45,9 +55,12 @@ class FormFieldExtension extends FieldAbstractExtension
      */
     protected $parameters = [];
 
-    /**
-     * {@inheritdoc}
-     */
+    public function __construct(FormFactory $formFactory, TranslatorInterface $translator)
+    {
+        $this->formFactory = $formFactory;
+        $this->translator = $translator;
+    }
+
     public static function getSubscribedEvents()
     {
         return [
@@ -57,23 +70,11 @@ class FormFieldExtension extends FieldAbstractExtension
         ];
     }
 
-    public function __construct(FormFactory $formFactory, TranslatorInterface $translator)
-    {
-        $this->formFactory = $formFactory;
-        $this->translator = $translator;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getExtendedFieldTypes()
     {
         return ['text', 'number', 'date', 'time', 'datetime', 'entity', 'boolean'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function initOptions(FieldTypeInterface $field)
     {
         $field->getOptionsResolver()
@@ -96,22 +97,17 @@ class FormFieldExtension extends FieldAbstractExtension
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function postBuildView(FieldEvent\ViewEventArgs $event)
     {
         $field = $event->getField();
         $view = $event->getView();
 
-        if ($form = $this->getForm($field)) {
+        $form = $this->getForm($field);
+        if (null !== $form) {
             $view->setAttribute('form', $form->createView());
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function preBindParameter(FieldEvent\ParameterEventArgs $event)
     {
         $field = $event->getField();
@@ -120,7 +116,7 @@ class FormFieldExtension extends FieldAbstractExtension
             return;
         }
 
-        $field_oid = spl_object_hash($field);
+        $fieldOid = spl_object_hash($field);
         $parameter = $event->getParameter();
 
         if ($form->isSubmitted()) {
@@ -128,16 +124,15 @@ class FormFieldExtension extends FieldAbstractExtension
         }
 
         $datasourceName = $field->getDataSource() ? $field->getDataSource()->getName() : null;
-
-        if (empty($datasourceName)) {
+        if (null === $datasourceName || '' === $datasourceName) {
             return;
         }
 
         if ($this->hasParameterValue($parameter, $field)) {
-            $this->parameters[$field_oid] = $this->getParameterValue($parameter, $field);
+            $this->parameters[$fieldOid] = $this->getParameterValue($parameter, $field);
 
             $fieldForm = $form->get(DataSourceInterface::PARAMETER_FIELDS)->get($field->getName());
-            $fieldForm->submit($this->parameters[$field_oid]);
+            $fieldForm->submit($this->parameters[$fieldOid]);
             $data = $fieldForm->getData();
 
             if ($data !== null) {
@@ -150,32 +145,21 @@ class FormFieldExtension extends FieldAbstractExtension
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function preGetParameter(FieldEvent\ParameterEventArgs $event)
     {
         $field = $event->getField();
-        $field_oid = spl_object_hash($field);
+        $fieldOid = spl_object_hash($field);
 
-        if (isset($this->parameters[$field_oid])) {
+        if (isset($this->parameters[$fieldOid])) {
             $parameters = [];
-            $this->setParameterValue($parameters, $field, $this->parameters[$field_oid]);
+            $this->setParameterValue($parameters, $field, $this->parameters[$fieldOid]);
             $event->setParameter($parameters);
         }
     }
 
-    /**
-     * Builds form.
-     *
-     * @param FieldTypeInterface $field
-     * @param bool $force
-     * @return FormInterface|null
-     */
-    protected function getForm(FieldTypeInterface $field, $force = false)
+    protected function getForm(FieldTypeInterface $field, bool $force = false): ?FormInterface
     {
         $datasource = $field->getDataSource();
-
         if ($datasource === null) {
             return null;
         }
@@ -184,10 +168,9 @@ class FormFieldExtension extends FieldAbstractExtension
             return null;
         }
 
-        $field_oid = spl_object_hash($field);
-
-        if (isset($this->forms[$field_oid]) && !$force) {
-            return $this->forms[$field_oid];
+        $fieldOid = spl_object_hash($field);
+        if (isset($this->forms[$fieldOid]) && !$force) {
+            return $this->forms[$fieldOid];
         }
 
         $options = $field->getOption('form_options');
@@ -195,17 +178,13 @@ class FormFieldExtension extends FieldAbstractExtension
 
         $form = $this->formFactory->createNamed(
             $datasource->getName(),
-            $this->isFqcnFormTypePossible()
-                ? 'Symfony\Component\Form\Extension\Core\Type\CollectionType'
-                : 'collection',
+            $this->isFqcnFormTypePossible() ? CollectionType::class : 'collection',
             null,
             ['csrf_protection' => false]
         );
         $fieldsForm = $this->formFactory->createNamed(
             DataSourceInterface::PARAMETER_FIELDS,
-            $this->isFqcnFormTypePossible()
-                ? 'Symfony\Component\Form\Extension\Core\Type\FormType'
-                : 'form',
+            $this->isFqcnFormTypePossible() ? FormType::class : 'form',
             null,
             ['auto_initialize' => false]
         );
@@ -232,23 +211,19 @@ class FormFieldExtension extends FieldAbstractExtension
         }
 
         $form->add($fieldsForm);
-        $this->forms[$field_oid] = $form;
+        $this->forms[$fieldOid] = $form;
 
-        return $this->forms[$field_oid];
+        return $this->forms[$fieldOid];
     }
 
-    /**
-     * @param FormInterface $form
-     * @param FieldTypeInterface $field
-     * @param array $options
-     */
-    protected function buildBetweenComparisonForm(FormInterface $form, FieldTypeInterface $field, $options = [])
-    {
+    protected function buildBetweenComparisonForm(
+        FormInterface $form,
+        FieldTypeInterface $field,
+        array $options = []
+    ): void {
         $betweenBuilder = $this->getFormFactory()->createNamedBuilder(
             $field->getName(),
-            $this->isFqcnFormTypePossible()
-                ? 'FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Type\BetweenType'
-                : 'datasource_between',
+            $this->isFqcnFormTypePossible() ? BetweenType::class : 'datasource_between',
             null,
             $options
         );
@@ -299,9 +274,7 @@ class FormFieldExtension extends FieldAbstractExtension
         $options = array_merge($defaultOptions, $options);
         $form->add(
             $field->getName(),
-            $this->isFqcnFormTypePossible()
-                ? 'Symfony\Component\Form\Extension\Core\Type\ChoiceType'
-                : 'choice',
+            $this->isFqcnFormTypePossible() ? ChoiceType::class : 'choice',
             $options
         );
     }
@@ -337,22 +310,17 @@ class FormFieldExtension extends FieldAbstractExtension
         $options = array_merge($defaultOptions, $options);
         $form->add(
             $field->getName(),
-            $this->isFqcnFormTypePossible()
-                ? 'Symfony\Component\Form\Extension\Core\Type\ChoiceType'
-                : 'choice',
+            $this->isFqcnFormTypePossible() ? ChoiceType::class : 'choice',
             $options
         );
     }
 
-    /**
-     * @return FormFactory
-     */
-    protected function getFormFactory()
+    protected function getFormFactory(): FormFactoryInterface
     {
         return $this->formFactory;
     }
 
-    private function getFieldFormType(FieldTypeInterface $field)
+    private function getFieldFormType(FieldTypeInterface $field): string
     {
         if ($field->hasOption('form_type')) {
             return $field->getOption('form_type');
@@ -366,39 +334,23 @@ class FormFieldExtension extends FieldAbstractExtension
 
         switch ($declaredType) {
             case 'text':
-                return 'Symfony\Component\Form\Extension\Core\Type\TextType';
+                return TextType::class;
             case 'number':
-                return 'Symfony\Component\Form\Extension\Core\Type\NumberType';
+                return NumberType::class;
             case 'date':
-                return 'Symfony\Component\Form\Extension\Core\Type\DateType';
+                return DateType::class;
             case 'time':
-                return 'Symfony\Component\Form\Extension\Core\Type\TimeType';
+                return TimeType::class;
             case 'datetime':
-                return 'Symfony\Component\Form\Extension\Core\Type\DateTimeType';
+                return DateTimeType::class;
             case 'entity':
-                return 'Symfony\Bridge\Doctrine\Form\Type\EntityType';
+                return EntityType::class;
             default:
-                throw new \InvalidArgumentException(sprintf(
-                    'Unsupported field type "%s"',
-                    $declaredType
-                ));
+                throw new InvalidArgumentException("Unsupported field type \"{$declaredType}\"");
         }
     }
 
-    /**
-     * @return bool
-     */
-    private function isFqcnFormTypePossible()
-    {
-        return class_exists('Symfony\Component\Form\Extension\Core\Type\RangeType');
-    }
-
-    /**
-     * @param array $array
-     * @param FieldTypeInterface $field
-     * @return bool
-     */
-    private function hasParameterValue(array $array, FieldTypeInterface $field)
+    private function hasParameterValue(array $array, FieldTypeInterface $field): bool
     {
         return isset(
             $array[$field->getDataSource()->getName()][DataSourceInterface::PARAMETER_FIELDS][$field->getName()]
@@ -425,20 +377,18 @@ class FormFieldExtension extends FieldAbstractExtension
         $array[$field->getDataSource()->getName()][DataSourceInterface::PARAMETER_FIELDS][$field->getName()] = $value;
     }
 
-    /**
-     * @param array &$array
-     * @param FieldTypeInterface $field
-     */
-    private function clearParameterValue(array &$array, FieldTypeInterface $field)
+    private function clearParameterValue(array &$array, FieldTypeInterface $field): void
     {
         unset($array[$field->getDataSource()->getName()][DataSourceInterface::PARAMETER_FIELDS][$field->getName()]);
     }
 
-    /**
-     * @return bool
-     */
-    private function isSymfonyForm27()
+    private function isFqcnFormTypePossible(): bool
     {
-        return method_exists('Symfony\Component\Form\FormTypeInterface', 'configureOptions');
+        return class_exists('Symfony\Component\Form\Extension\Core\Type\RangeType');
+    }
+
+    private function isSymfonyForm27(): bool
+    {
+        return method_exists(FormTypeInterface::class, 'configureOptions');
     }
 }
