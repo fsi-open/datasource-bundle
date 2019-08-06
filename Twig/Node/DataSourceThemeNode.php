@@ -9,19 +9,18 @@
 
 namespace FSi\Bundle\DataSourceBundle\Twig\Node;
 
-class DataSourceThemeNode extends \Twig_Node
+use Twig\Compiler;
+use Twig\Node\Expression\AbstractExpression;
+use Twig\Node\Node;
+
+class DataSourceThemeNode extends Node
 {
-    public function __construct(\Twig_Node $dataGrid, \Twig_Node $theme, \Twig_Node_Expression_Array $vars, $lineno, $tag = null)
+    public function __construct(Node $dataGrid, Node $theme, AbstractExpression $vars, $lineno, $tag = null)
     {
         parent::__construct(['datasource' => $dataGrid, 'theme' => $theme, 'vars' => $vars], [], $lineno, $tag);
     }
 
-    /**
-     * Compiles the node to PHP.
-     *
-     * @param \Twig_Compiler $compiler A Twig_Compiler instance
-     */
-    public function compile(\Twig_Compiler $compiler)
+    public function compile(Compiler $compiler)
     {
         $compiler
             ->addDebugInfo($this)

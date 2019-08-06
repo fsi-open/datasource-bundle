@@ -39,13 +39,7 @@ class DriverExtension implements DriverExtensionInterface
      */
     private $eventSubscribers = [];
 
-    /**
-     * @param string $driverType
-     * @param FieldTypeInterface[] $fieldTypes
-     * @param FieldExtensionInterface[] $fieldExtensions
-     * @param EventSubscriberInterface[] $eventSubscribers
-     */
-    public function __construct($driverType, array $fieldTypes, array $fieldExtensions, array $eventSubscribers)
+    public function __construct(string $driverType, array $fieldTypes, array $fieldExtensions, array $eventSubscribers)
     {
         $this->driverType = $driverType;
 
@@ -66,25 +60,16 @@ class DriverExtension implements DriverExtensionInterface
         $this->eventSubscribers = $eventSubscribers;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getExtendedDriverTypes()
     {
         return [$this->driverType];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function hasFieldType($type)
     {
         return array_key_exists($type, $this->fieldTypes);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getFieldType($type)
     {
         if (!array_key_exists($type, $this->fieldTypes)) {
@@ -94,17 +79,11 @@ class DriverExtension implements DriverExtensionInterface
         return $this->fieldTypes[$type];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function hasFieldTypeExtensions($type)
     {
         return array_key_exists($type, $this->fieldExtensions);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getFieldTypeExtensions($type)
     {
         if (!array_key_exists($type, $this->fieldExtensions)) {
@@ -114,9 +93,6 @@ class DriverExtension implements DriverExtensionInterface
         return $this->fieldExtensions[$type];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function loadSubscribers()
     {
         return $this->eventSubscribers;

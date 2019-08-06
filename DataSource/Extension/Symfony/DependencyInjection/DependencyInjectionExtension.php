@@ -13,9 +13,6 @@ use FSi\Component\DataSource\DataSourceExtensionInterface;
 use FSi\Component\DataSource\Driver\DriverExtensionInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-/**
- * DependencyInjection extension loads various types of extensions from Symfony's service container.
- */
 class DependencyInjectionExtension implements DataSourceExtensionInterface
 {
     /**
@@ -28,27 +25,17 @@ class DependencyInjectionExtension implements DataSourceExtensionInterface
      */
     private $eventSubscribers;
 
-    /**
-     * @param DriverExtensionInterface[] $driverExtensions
-     * @param EventSubscriberInterface[] $eventSubscribers
-     */
     public function __construct(array $driverExtensions, array $eventSubscribers)
     {
         $this->driverExtensions = $driverExtensions;
         $this->eventSubscribers = $eventSubscribers;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function loadDriverExtensions()
     {
         return $this->driverExtensions;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function loadSubscribers()
     {
         return $this->eventSubscribers;

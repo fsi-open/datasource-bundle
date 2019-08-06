@@ -9,19 +9,37 @@
 
 namespace FSi\Bundle\DataSourceBundle\Twig\Node;
 
-class DataSourceRouteNode extends \Twig_Node
+use Twig\Compiler;
+use Twig\Node\Expression\AbstractExpression;
+use Twig\Node\Node;
+
+class DataSourceRouteNode extends Node
 {
-    public function __construct(\Twig_Node $dataGrid, \Twig_Node $route, \Twig_Node_Expression $additional_parameters, $lineno, $tag = null)
-    {
-        parent::__construct(['datasource' => $dataGrid, 'route' => $route, 'additional_parameters' => $additional_parameters], [], $lineno, $tag);
+    public function __construct(
+        Node $dataGrid,
+        Node $route,
+        AbstractExpression $additionalParameters,
+        $lineno,
+        $tag = null
+    ) {
+        parent::__construct(
+            [
+                'datasource' => $dataGrid,
+                'route' => $route,
+                'additional_parameters' => $additionalParameters
+            ],
+            [],
+            $lineno,
+            $tag
+        );
     }
 
     /**
      * Compiles the node to PHP.
      *
-     * @param \Twig_Compiler $compiler A Twig_Compiler instance
+     * @param Compiler $compiler A Twig_Compiler instance
      */
-    public function compile(\Twig_Compiler $compiler)
+    public function compile(Compiler $compiler)
     {
         $compiler
             ->addDebugInfo($this)

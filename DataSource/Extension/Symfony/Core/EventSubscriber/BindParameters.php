@@ -14,24 +14,13 @@ use FSi\Component\DataSource\Event\DataSourceEvents;
 use FSi\Component\DataSource\Event\DataSourceEvent;
 use Symfony\Component\HttpFoundation\Request;
 
-/**
- * Class contains method called at BindParameters events.
- */
 class BindParameters implements EventSubscriberInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public static function getSubscribedEvents()
     {
         return [DataSourceEvents::PRE_BIND_PARAMETERS => ['preBindParameters', 1024]];
     }
 
-    /**
-     * Method called at PreBindParameters event.
-     *
-     * @param DataSourceEvent\ParametersEventArgs $event
-     */
     public function preBindParameters(DataSourceEvent\ParametersEventArgs $event)
     {
         $parameters = $event->getParameters();

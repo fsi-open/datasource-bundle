@@ -18,9 +18,6 @@ use FSi\Component\DataSource\Event\DataSourceEvent;
  */
 class Events implements EventSubscriberInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public static function getSubscribedEvents()
     {
         return [
@@ -28,9 +25,6 @@ class Events implements EventSubscriberInterface
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function postBuildView(DataSourceEvent\ViewEventArgs $event)
     {
         $fieldViews = $event->getView()->getFields();

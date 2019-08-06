@@ -17,9 +17,6 @@ use FSi\Component\DataSource\DataSourceAbstractExtension;
  */
 class CoreExtension extends DataSourceAbstractExtension
 {
-    /**
-     * {@inheritdoc}
-     */
     public function loadSubscribers()
     {
         return [

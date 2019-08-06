@@ -192,11 +192,7 @@ class FormExtensionTest extends TestCase
         $formFactory = $this->getFormFactory();
         $translator = $this->createMock(TranslatorInterface::class);
         $extension = new DriverExtension($formFactory, $translator);
-        $driver = $this->createMock(DriverInterface::class);
-        $datasource = $this->getMockBuilder(DataSourceInterface::class)
-            ->setConstructorArgs([$driver])
-            ->getMock()
-        ;
+        $datasource = $this->createMock(DataSourceInterface::class);
         $datasource->expects($this->any())->method('getName')->willReturn('datasource');
 
         $field = $this->createMock(FieldTypeInterface::class);
@@ -314,7 +310,7 @@ class FormExtensionTest extends TestCase
         $translator = $this->getTranslator();
         $extension = new DriverExtension($formFactory, $translator);
         $driver = $this->createMock(DriverInterface::class);
-        $datasource = $this->createMock(DataSourceInterface::class, [], [$driver]);
+        $datasource = $this->createMock(DataSourceInterface::class);
         $datasource->expects($this->any())->method('getName')->willReturn('datasource');
 
         $field = $this->createMock(FieldTypeInterface::class);
@@ -376,7 +372,7 @@ class FormExtensionTest extends TestCase
         $translator = $this->getTranslator();
         $formFieldExtension = new FormFieldExtension($formFactory, $translator);
         $driver = $this->createMock(DriverInterface::class);
-        $datasource = $this->createMock(DataSourceInterface::class, [], [$driver]);
+        $datasource = $this->createMock(DataSourceInterface::class);
 
         $field = $this->createMock(Boolean::class);
         $field->expects($this->atLeastOnce())->method('getName')->willReturn('name');
@@ -419,8 +415,7 @@ class FormExtensionTest extends TestCase
         $formFactory = $this->getFormFactory();
         $translator = $this->getTranslator();
         $formFieldExtension = new FormFieldExtension($formFactory, $translator);
-        $driver = $this->createMock(DriverInterface::class);
-        $datasource = $this->createMock(DataSourceInterface::class, [], [$driver]);
+        $datasource = $this->createMock(DataSourceInterface::class);
 
         $field = $this->createMock(Boolean::class);
         $field->expects($this->atLeastOnce())->method('getName')->willReturn('name');
@@ -465,8 +460,7 @@ class FormExtensionTest extends TestCase
         $translator = $this->getTranslator();
         $formFieldExtension = new FormFieldExtension($formFactory, $translator);
         $field = $this->createMock(FieldTypeInterface::class);
-        $driver = $this->createMock(DriverInterface::class);
-        $datasource = $this->createMock(DataSourceInterface::class, [], [$driver]);
+        $datasource = $this->createMock(DataSourceInterface::class);
 
         $field->expects($this->atLeastOnce())->method('getName')->willReturn('name');
         $field->expects($this->atLeastOnce())->method('getDataSource')->willReturn($datasource);
