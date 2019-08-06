@@ -22,10 +22,10 @@ use Symfony\Bridge\Twig\Tests\Extension\Fixtures\StubTranslator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\RouterInterface;
-use Twig_Environment;
-use Twig_Error_Loader;
-use Twig_Loader_Filesystem;
-use Twig_Template;
+use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Loader\FilesystemLoader;
+use Twig\Template;
 
 /**
  * @author Stanislav Prokopov <stanislav.prokopov@gmail.com>
@@ -33,7 +33,7 @@ use Twig_Template;
 class DataSourceExtensionTest extends TestCase
 {
     /**
-     * @var Twig_Environment
+     * @var Environment
      */
     protected $twig;
 
@@ -44,7 +44,7 @@ class DataSourceExtensionTest extends TestCase
 
     public function testInitRuntimeShouldThrowExceptionBecauseNotExistingTheme()
     {
-        $this->expectException(Twig_Error_Loader::class);
+        $this->expectException(LoaderError::class);
         $this->expectExceptionMessage('Unable to find template "this_is_not_valid_path.html.twig"');
 
         $this->twig->addExtension(new DataSourceExtension($this->getContainer(), 'this_is_not_valid_path.html.twig'));
@@ -56,7 +56,7 @@ class DataSourceExtensionTest extends TestCase
     {
         $this->twig->addExtension($this->extension);
         // force initRuntime()
-        $this->assertInstanceOf(Twig_Template::class, $this->twig->loadTemplate('datasource.html.twig'));
+        $this->assertInstanceOf(Template::class, $this->twig->loadTemplate('datasource.html.twig'));
     }
 
     public function testDataSourceFilterCount()
@@ -149,12 +149,12 @@ class DataSourceExtensionTest extends TestCase
     protected function setUp()
     {
         $subPath = version_compare(Kernel::VERSION, '2.7.0', '<') ? 'Symfony/Bridge/Twig/' : '';
-        $loader = new Twig_Loader_Filesystem([
+        $loader = new FilesystemLoader([
             __DIR__ . '/../../../vendor/symfony/twig-bridge/' . $subPath . 'Resources/views/Form',
             __DIR__ . '/../../../Resources/views', // datasource base theme
         ]);
 
-        $twig = new Twig_Environment($loader);
+        $twig = new Environment($loader);
         $twig->addExtension(new TranslationExtension(new StubTranslator()));
         $twig->addExtension($this->getFormExtension($subPath !== ''));
         $twig->addGlobal('global_var', 'global_value');
@@ -189,7 +189,7 @@ class DataSourceExtensionTest extends TestCase
 
     private function getTemplateMock(): MockObject
     {
-        return $this->createMock(Twig_Template::class);
+        return $this->createMock(Template::class);
     }
 
     private function getFormExtension(bool $legacy): FormExtension

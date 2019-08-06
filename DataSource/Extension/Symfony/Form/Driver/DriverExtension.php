@@ -38,17 +38,11 @@ class DriverExtension extends DriverAbstractExtension
         $this->translator = $translator;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getExtendedDriverTypes()
     {
         return ['doctrine-orm'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function loadFieldTypesExtensions()
     {
         return [new Field\FormFieldExtension($this->formFactory, $this->translator)];

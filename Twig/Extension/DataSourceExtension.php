@@ -14,18 +14,23 @@ use FSi\Bundle\DataSourceBundle\Twig\TokenParser\DataSourceThemeTokenParser;
 use FSi\Component\DataSource\DataSourceViewInterface;
 use FSi\Component\DataSource\Extension\Core\Pagination\PaginationExtension;
 use FSi\Component\DataSource\Field\FieldViewInterface;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Twig_SimpleFunction;
-use Twig_Template;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Twig\Environment;
+use Twig\Extension\AbstractExtension;
+use Twig\Extension\InitRuntimeInterface;
+use Twig\Template;
+use Twig\TwigFunction;
 
-class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_InitRuntimeInterface
+class DataSourceExtension extends AbstractExtension implements InitRuntimeInterface
 {
     /**
      * Default theme key in themes array.
      */
-    const DEFAULT_THEME = 'default_theme';
+    public const DEFAULT_THEME = 'default_theme';
 
     /**
      * @var array
@@ -45,24 +50,24 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
     /**
      * @var array
      */
-    private $additional_parameters;
+    private $additionalParameters;
 
     /**
-     * @var \Twig_TemplateInterface
+     * @var \TemplateInterface
      */
     private $baseTemplate;
 
     /**
-     * @var \Symfony\Component\DependencyInjection\ContainerInterface
+     * @var ContainerInterface
      */
     private $container;
 
     /**
-     * @var \Twig_Environment
+     * @var Environment
      */
     private $environment;
 
-    public function __construct(ContainerInterface $container, $template)
+    public function __construct(ContainerInterface $container, string $template)
     {
         $this->themes = [];
         $this->themesVars = [];
@@ -75,30 +80,24 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
         return 'datasource';
     }
 
-    public function initRuntime(\Twig_Environment $environment)
+    public function initRuntime(Environment $environment)
     {
         $this->environment = $environment;
         $this->themes[self::DEFAULT_THEME] = $this->environment->loadTemplate($this->baseTemplate);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getFunctions()
     {
         return [
-            new Twig_SimpleFunction('datasource_filter_widget', [$this, 'datasourceFilter'], ['is_safe' => ['html']]),
-            new Twig_SimpleFunction('datasource_filter_count', [$this, 'datasourceFilterCount'], ['is_safe' => ['html']]),
-            new Twig_SimpleFunction('datasource_field_widget', [$this, 'datasourceField'], ['is_safe' => ['html']]),
-            new Twig_SimpleFunction('datasource_sort_widget', [$this, 'datasourceSort'], ['is_safe' => ['html']]),
-            new Twig_SimpleFunction('datasource_pagination_widget', [$this, 'datasourcePagination'], ['is_safe' => ['html']]),
-            new Twig_SimpleFunction('datasource_max_results_widget', [$this, 'datasourceMaxResults'], ['is_safe' => ['html']]),
+            new TwigFunction('datasource_filter_widget', [$this, 'datasourceFilter'], ['is_safe' => ['html']]),
+            new TwigFunction('datasource_filter_count', [$this, 'datasourceFilterCount'], ['is_safe' => ['html']]),
+            new TwigFunction('datasource_field_widget', [$this, 'datasourceField'], ['is_safe' => ['html']]),
+            new TwigFunction('datasource_sort_widget', [$this, 'datasourceSort'], ['is_safe' => ['html']]),
+            new TwigFunction('datasource_pagination_widget', [$this, 'datasourcePagination'], ['is_safe' => ['html']]),
+            new TwigFunction('datasource_max_results_widget', [$this, 'datasourceMaxResults'], ['is_safe' => ['html']]),
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getTokenParsers()
     {
         return [
@@ -117,7 +116,7 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
      */
     public function setTheme(DataSourceViewInterface $dataSource, $theme, array $vars = [])
     {
-        $this->themes[$dataSource->getName()] = ($theme instanceof Twig_Template)
+        $this->themes[$dataSource->getName()] = ($theme instanceof Template)
             ? $theme
             : $this->environment->loadTemplate($theme);
         $this->themesVars[$dataSource->getName()] = $vars;
@@ -128,12 +127,12 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
      *
      * @param DataSourceViewInterface $dataSource
      * @param $route
-     * @param array $additional_parameters
+     * @param array $additionalParameters
      */
-    public function setRoute(DataSourceViewInterface $dataSource, $route, array $additional_parameters = [])
+    public function setRoute(DataSourceViewInterface $dataSource, $route, array $additionalParameters = [])
     {
         $this->routes[$dataSource->getName()] = $route;
-        $this->additional_parameters[$dataSource->getName()] = $additional_parameters;
+        $this->additionalParameters[$dataSource->getName()] = $additionalParameters;
     }
 
     public function datasourceFilter(DataSourceViewInterface $view, array $vars = [])
@@ -330,7 +329,7 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
      * @param array $options
      * @return array
      */
-    private function resolveMaxResultsOptions(array $options, DataSourceViewInterface $dataSource)
+    private function resolveMaxResultsOptions(array $options, DataSourceViewInterface $dataSource): array
     {
         $optionsResolver = new OptionsResolver();
         $optionsResolver
@@ -348,7 +347,7 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
         return $optionsResolver->resolve($options);
     }
 
-    public function datasourceMaxResults(DataSourceViewInterface $view, $options = [], $vars = [])
+    public function datasourceMaxResults(DataSourceViewInterface $view, $options = [], $vars = []): string
     {
         $options = $this->resolveMaxResultsOptions($options, $view);
         $blockNames = [
@@ -378,7 +377,7 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
         return $this->renderTheme($view, $viewData, $blockNames);
     }
 
-    private function getCurrentRoute(DataSourceViewInterface $dataSource)
+    private function getCurrentRoute(DataSourceViewInterface $dataSource): string
     {
         if (isset($this->routes[$dataSource->getName()])) {
             return $this->routes[$dataSource->getName()];
@@ -388,7 +387,7 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
         $requestStack = $this->container->get('request_stack');
         $request = $requestStack->getMasterRequest();
         if ($request->attributes->get('_route') === '_fragment') {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'Some datasource widget was called during Symfony internal request.
                 You must use {% datasource_route %} twig tag to specify target
                 route and/or additional parameters for this datasource\'s actions'
@@ -406,16 +405,14 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
      * @param DataSourceViewInterface $dataSource
      * @return array
      */
-    private function getTemplates(DataSourceViewInterface $dataSource)
+    private function getTemplates(DataSourceViewInterface $dataSource): array
     {
         $templates = [];
-
         if (isset($this->themes[$dataSource->getName()])) {
             $templates[] = $this->themes[$dataSource->getName()];
         }
 
         $templates[] = $this->themes[self::DEFAULT_THEME];
-
         return $templates;
     }
 
@@ -441,13 +438,14 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
      */
     private function getUrl(DataSourceViewInterface $dataSource, array $options = [], array $parameters = [])
     {
+        /** @var UrlGeneratorInterface $router */
         $router = $this->container->get('router');
 
         return $router->generate(
             $options['route'],
             array_merge(
-                isset($this->additional_parameters[$dataSource->getName()])
-                    ? $this->additional_parameters[$dataSource->getName()]
+                isset($this->additionalParameters[$dataSource->getName()])
+                    ? $this->additionalParameters[$dataSource->getName()]
                     : [],
                 isset($options['additional_parameters'])
                     ? $options['additional_parameters']
@@ -463,8 +461,11 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
      * @param $availableBlocks
      * @return string
      */
-    private function renderTheme(DataSourceViewInterface $view, array $contextVars = [], $availableBlocks = [])
-    {
+    private function renderTheme(
+        DataSourceViewInterface $view,
+        array $contextVars = [],
+        array $availableBlocks = []
+    ): string {
         $templates = $this->getTemplates($view);
         $contextVars = $this->environment->mergeGlobals($contextVars);
 
@@ -472,9 +473,8 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
         foreach ($availableBlocks as $blockName) {
             foreach ($templates as $template) {
                 $template = $this->findTemplateWithBlock($template, $blockName, $contextVars);
-                if (false !== $template) {
+                if (true === $template instanceof Template) {
                     $template->displayBlock($blockName, $contextVars);
-
                     return ob_get_clean();
                 }
             }
@@ -483,12 +483,7 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
         return ob_get_clean();
     }
 
-    /**
-     * @param Twig_Template $template
-     * @param string $blockName
-     * @return Twig_Template|bool
-     */
-    private function findTemplateWithBlock(Twig_Template $template, $blockName, array $contextVars)
+    private function findTemplateWithBlock(Template $template, string $blockName, array $contextVars): ?Template
     {
         if ($template->hasBlock($blockName, $contextVars)) {
             return $template;
@@ -500,6 +495,6 @@ class DataSourceExtension extends \Twig_Extension implements \Twig_Extension_Ini
             return $this->findTemplateWithBlock($parent, $blockName, $contextVars);
         }
 
-        return false;
+        return null;
     }
 }
