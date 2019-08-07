@@ -1,9 +1,10 @@
 # FSi DataSource Bundle #
 
-Main purpose of this bundle is to integrate [FSi DataSource Component](https://github.com/fsi-open/datasource)
-with any Symfony2 based application.
-Build Status:  
-[![Build Status](https://travis-ci.org/fsi-open/datasource-bundle.png?branch=master)](https://travis-ci.org/fsi-open/datasource-bundle) - Master    
+This bundle provides integration with the [FSi DataSource Component](https://github.com/fsi-open/datasource).
+
+Build Status:
+[![Build Status](https://travis-ci.org/fsi-open/datasource-bundle.png?branch=master)](https://travis-ci.org/fsi-open/datasource-bundle) - Master  
+[![Build Status](https://travis-ci.org/fsi-open/datasource-bundle.png?branch=2.0)](https://travis-ci.org/fsi-open/datasource-bundle) - 2.0  
 [![Build Status](https://travis-ci.org/fsi-open/datasource-bundle.png?branch=1.2)](https://travis-ci.org/fsi-open/datasource-bundle) - 1.2  
 [![Build Status](https://travis-ci.org/fsi-open/datasource-bundle.png?branch=1.1)](https://travis-ci.org/fsi-open/datasource-bundle) - 1.1  
 [![Build Status](https://travis-ci.org/fsi-open/datasource-bundle.png?branch=1.0)](https://travis-ci.org/fsi-open/datasource-bundle) - 1.0  

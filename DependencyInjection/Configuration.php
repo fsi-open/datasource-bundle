@@ -45,7 +45,7 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->booleanNode('enabled')->defaultTrue()->end()
-                        ->scalarNode('template')->defaultValue('datasource.html.twig')->end()
+                        ->scalarNode('template')->defaultValue('@DataSource/datasource.html.twig')->end()
                     ->end()
                 ->end()
             ->end()
