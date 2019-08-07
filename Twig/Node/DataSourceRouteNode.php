@@ -34,11 +34,6 @@ class DataSourceRouteNode extends Node
         );
     }
 
-    /**
-     * Compiles the node to PHP.
-     *
-     * @param Compiler $compiler A Twig_Compiler instance
-     */
     public function compile(Compiler $compiler)
     {
         $compiler

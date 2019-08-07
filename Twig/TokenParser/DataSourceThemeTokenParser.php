@@ -10,20 +10,18 @@
 namespace FSi\Bundle\DataSourceBundle\Twig\TokenParser;
 
 use FSi\Bundle\DataSourceBundle\Twig\Node\DataSourceThemeNode;
+use Twig\Node\Expression\ArrayExpression;
 use Twig\Token;
 use Twig\TokenParser\AbstractTokenParser;
 
 class DataSourceThemeTokenParser extends AbstractTokenParser
 {
-    /**
-     * {@inheritDoc}
-     */
     public function parse(Token $token)
     {
         $stream = $this->parser->getStream();
         $dataSource = $this->parser->getExpressionParser()->parseExpression();
         $theme = $this->parser->getExpressionParser()->parseExpression();
-        $vars = new Node_Expression_Array([], $stream->getCurrent()->getLine());
+        $vars = new ArrayExpression([], $stream->getCurrent()->getLine());
 
         if ($this->parser->getStream()->test(Token::NAME_TYPE, 'with')) {
             $this->parser->getStream()->next();
@@ -38,9 +36,6 @@ class DataSourceThemeTokenParser extends AbstractTokenParser
         return new DataSourceThemeNode($dataSource, $theme, $vars, $token->getLine(), $this->getTag());
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getTag()
     {
         return 'datasource_theme';
