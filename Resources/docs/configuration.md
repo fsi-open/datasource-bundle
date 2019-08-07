@@ -13,5 +13,5 @@ fsi_data_source:
     twig:
         enabled: true
         themes:
-            - datasource.html.twig
+            - '@DataSource/datasource.html.twig'
 ```
