@@ -1,13 +1,13 @@
 {% block datasource_filter %}
-{% filter spaceless %}
+{% apply spaceless %}
     {% for field in datasource.fields %}
         {{ datasource_field_widget(field, vars) }}
     {% endfor %}
-{% endfilter %}
+{% endapply %}
 {% endblock %}
 
 {% block datasource_field %}
-{% filter spaceless %}
+{% apply spaceless %}
     {% if field.hasAttribute('form') is not empty %}
         <div>
             {% for child in field.getAttribute('form').children %}
@@ -19,11 +19,11 @@
             {% endfor %}
         </div>
     {% endif %}
-{% endfilter %}
+{% endapply %}
 {% endblock %}
 
 {% block datasource_sort %}
-{% filter spaceless %}
+{% apply spaceless %}
     {% if (field.getAttribute('sorted_ascending')) %}
     <span>{{ ascending|raw }}</span>
     {% else %}
@@ -34,11 +34,11 @@
     {% else %}
     <a href="{{ descending_url }}">{{ descending|raw }}</a>
     {% endif %}
-{% endfilter %}
+{% endapply %}
 {% endblock %}
 
 {% block datasource_pagination %}
-{% filter spaceless %}
+{% apply spaceless %}
 <ul>
     <li{% if current == first %} class="{{ disabled_class }}"{% endif %}>
         <a href="{% if current != first %}{{ first_url }}{% else %}#{% endif %}">{{ 'datasource.pagination.first'|trans({}, translation_domain) }}</a>
@@ -58,7 +58,7 @@
         <a href="{% if current != last %}{{ last_url }}{% else %}#{% endif %}">{{ 'datasource.pagination.last'|trans({}, translation_domain) }}</a>
     </li>
 </ul>
-{% endfilter %}
+{% endapply %}
 {% endblock %}
 
 {% block datasource_max_results_widget %}

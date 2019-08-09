@@ -24,12 +24,10 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Doctrine\Form\DoctrineOrmExtension;
 use Symfony\Component\Form\Extension\Core\CoreExtension;
 use Symfony\Component\Form\Extension\Csrf\CsrfExtension;
-use Symfony\Component\Form\Extension\Csrf\CsrfProvider\DefaultCsrfProvider;
 use Symfony\Component\Form\FormFactory;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormRegistry;
 use Symfony\Component\Form\ResolvedFormTypeFactory;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 use Symfony\Component\Translation\TranslatorInterface;
 
@@ -96,17 +94,11 @@ class FormExtensionEntityTest extends TestCase
 
     private function getFormFactory(): FormFactoryInterface
     {
-        if (version_compare(Kernel::VERSION, '3.0.0', '>=')) {
-            $tokenManager = new CsrfTokenManager();
-        } else {
-            $tokenManager = new DefaultCsrfProvider('tests');
-        }
-
         $typeFactory = new ResolvedFormTypeFactory();
         $registry = new FormRegistry(
             [
                 new CoreExtension(),
-                new CsrfExtension($tokenManager),
+                new CsrfExtension(new CsrfTokenManager()),
                 new DoctrineOrmExtension(new TestManagerRegistry($this->getEntityManager())),
             ],
             $typeFactory

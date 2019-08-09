@@ -177,15 +177,10 @@ class ConfigurationBuilderTest extends TestCase
     protected function setUp()
     {
         $kernelMockBuilder = $this->getMockBuilder(Kernel::class)->setConstructorArgs(['dev', true]);
-        if (version_compare(Kernel::VERSION, '2.7.0', '<')) {
-            $kernelMockBuilder->setMethods(
-                ['registerContainerConfiguration', 'registerBundles', 'getBundles', 'getContainer', 'init']
-            );
-        } else {
-            $kernelMockBuilder->setMethods(
-                ['registerContainerConfiguration', 'registerBundles', 'getBundles', 'getContainer']
-            );
-        }
+        $kernelMockBuilder->setMethods(
+            ['registerContainerConfiguration', 'registerBundles', 'getBundles', 'getContainer']
+        );
+
         $this->kernel = $kernelMockBuilder->getMock();
         $this->subscriber = new ConfigurationBuilder($this->kernel);
     }
