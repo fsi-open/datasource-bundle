@@ -9,28 +9,24 @@
 
 namespace FSi\Bundle\DataSourceBundle\DependencyInjection\Compiler;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
+use FSi\Bundle\DataSourceBundle\DataSourceBundle;
+use ReflectionClass;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class TemplatePathPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        $loaderDefinition = null;
-
-        if ($container->hasDefinition('twig.loader.filesystem')) {
-            $loaderDefinition = $container->getDefinition('twig.loader.filesystem');
-        } elseif ($container->hasDefinition('twig.loader')) {
-            // Symfony 2.0 and 2.1 were not using an alias for the filesystem loader
-            $loaderDefinition = $container->getDefinition('twig.loader');
-        }
-
+        $loaderDefinition = $container->getDefinition('twig.loader.filesystem');
         if (null === $loaderDefinition) {
             return;
         }
 
-        $refl = new \ReflectionClass('FSi\Bundle\DataSourceBundle\DataSourceBundle');
-        $path = dirname($refl->getFileName()).'/Resources/views';
-        $loaderDefinition->addMethodCall('addPath', [$path]);
+        $reflection = new ReflectionClass(DataSourceBundle::class);
+        $loaderDefinition->addMethodCall(
+            'addPath',
+            [dirname($reflection->getFileName()).'/Resources/views']
+        );
     }
 }

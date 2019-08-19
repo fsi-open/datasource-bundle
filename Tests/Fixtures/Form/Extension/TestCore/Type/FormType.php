@@ -15,9 +15,6 @@ use Symfony\Component\Form\FormView;
 
 class FormType extends BaseFormType
 {
-    /**
-     * {@inheritdoc}
-     */
     public function buildView(FormView $view, FormInterface $form, array $options)
     {
         parent::buildView($view, $form, $options);

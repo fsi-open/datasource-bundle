@@ -53,7 +53,7 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
     private $additionalParameters;
 
     /**
-     * @var \TemplateInterface
+     * @var Template
      */
     private $baseTemplate;
 
@@ -157,7 +157,7 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
     {
         $fields = $view->getFields();
         $count = 0;
-        /** @var $field \FSi\Component\DataSource\Field\FieldViewInterface */
+        /** @var $field FieldViewInterface */
         foreach ($fields as $field) {
             if ($field->hasAttribute('form')) {
                 $count++;
