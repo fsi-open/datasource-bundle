@@ -9,7 +9,7 @@
 
 namespace FSi\Bundle\DataSourceBundle\Tests\Extension\Symfony;
 
-use DateTime;
+use DateTimeImmutable;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Driver\DriverExtension;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\EventSubscriber\Events;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Extension\DatasourceExtension;
@@ -32,9 +32,7 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Form;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use Symfony\Component\Form\Extension\Csrf\CsrfProvider\DefaultCsrfProvider;
 use Symfony\Component\Form\FormFactoryInterface;
-use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 use Symfony\Component\Translation\TranslatorInterface;
@@ -237,7 +235,7 @@ class FormExtensionTest extends TestCase
             $parameters2 = [
                 'datasource' => [
                     DataSourceInterface::PARAMETER_FIELDS => [
-                        'name' => new DateTime('2012-12-12 12:12:00')
+                        'name' => new DateTimeImmutable('2012-12-12 12:12:00')
                     ]
                 ]
             ];
@@ -252,7 +250,7 @@ class FormExtensionTest extends TestCase
             $parameters2 = [
                 'datasource' => [
                     DataSourceInterface::PARAMETER_FIELDS => [
-                        'name' => new DateTime(date('Y-m-d', 0).' 12:12:00')
+                        'name' => new DateTimeImmutable(date('Y-m-d', 0).' 12:12:00')
                     ]
                 ]
             ];
@@ -264,7 +262,7 @@ class FormExtensionTest extends TestCase
                     ]
                 ]
             ];
-            $parameters2 = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => new DateTime('2012-12-12')]]];
+            $parameters2 = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => new DateTimeImmutable('2012-12-12')]]];
         } elseif ($type === 'number') {
             $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => 123]]];
             $parameters2 = $parameters;
@@ -385,11 +383,7 @@ class FormExtensionTest extends TestCase
                     case 'form_filter':
                         return true;
                     case 'form_options':
-                        return [
-                            'choices' => $this->isSymfonyForm27()
-                                ? ['tak' => '1', 'nie' => '0']
-                                : ['1' => 'tak', '0' => 'nie']
-                        ];
+                        return ['choices' => ['tak' => '1', 'nie' => '0']];
                 }
             }));
 
@@ -470,7 +464,7 @@ class FormExtensionTest extends TestCase
         $options = [
             'form_filter' => true,
             'form_options' => [],
-            'form_type' => $this->isSymfonyForm27() ? HiddenType::class : 'hidden'
+            'form_type' => HiddenType::class
         ];
 
         $field->expects($this->atLeastOnce())
@@ -521,17 +515,11 @@ class FormExtensionTest extends TestCase
         $typeFactory = new Form\ResolvedFormTypeFactory();
         $typeFactory->createResolvedType(new BetweenType(), []);
 
-        if ($this->isSymfonyForm27()) {
-            $tokenManager = new CsrfTokenManager();
-        } else {
-            $tokenManager = new DefaultCsrfProvider('tests');
-        }
-
         $registry = new Form\FormRegistry(
             [
                 new TestForm\Extension\TestCore\TestCoreExtension(),
                 new Form\Extension\Core\CoreExtension(),
-                new Form\Extension\Csrf\CsrfExtension($tokenManager),
+                new Form\Extension\Csrf\CsrfExtension(new CsrfTokenManager()),
                 new DatasourceExtension()
             ],
             $typeFactory
@@ -565,10 +553,5 @@ class FormExtensionTest extends TestCase
             }));
 
         return $translator;
-    }
-
-    private function isSymfonyForm27(): bool
-    {
-        return method_exists(FormTypeInterface::class, 'configureOptions');
     }
 }

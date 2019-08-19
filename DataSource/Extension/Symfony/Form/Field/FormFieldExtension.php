@@ -28,7 +28,6 @@ use Symfony\Component\Form\Extension\Core\Type\TimeType;
 use Symfony\Component\Form\FormFactory;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\Translation\TranslatorInterface;
 
 class FormFieldExtension extends FieldAbstractExtension
@@ -173,18 +172,20 @@ class FormFieldExtension extends FieldAbstractExtension
             return $this->forms[$fieldOid];
         }
 
-        $options = $field->getOption('form_options');
-        $options = array_merge($options, ['required' => false, 'auto_initialize' => false]);
+        $options = array_merge(
+            $field->getOption('form_options'),
+            ['required' => false, 'auto_initialize' => false]
+        );
 
         $form = $this->formFactory->createNamed(
             $datasource->getName(),
-            $this->isFqcnFormTypePossible() ? CollectionType::class : 'collection',
+            CollectionType::class,
             null,
             ['csrf_protection' => false]
         );
         $fieldsForm = $this->formFactory->createNamed(
             DataSourceInterface::PARAMETER_FIELDS,
-            $this->isFqcnFormTypePossible() ? FormType::class : 'form',
+            FormType::class,
             null,
             ['auto_initialize' => false]
         );
@@ -193,18 +194,14 @@ class FormFieldExtension extends FieldAbstractExtension
             case 'between':
                 $this->buildBetweenComparisonForm($fieldsForm, $field, $options);
                 break;
-
             case 'isNull':
                 $this->buildIsNullComparisonForm($fieldsForm, $field, $options);
                 break;
-
             default:
-
                 switch ($field->getType()) {
                     case 'boolean':
                         $this->buildBooleanForm($fieldsForm, $field, $options);
                         break;
-
                     default:
                         $fieldsForm->add($field->getName(), $this->getFieldFormType($field), $options);
                 }
@@ -223,7 +220,7 @@ class FormFieldExtension extends FieldAbstractExtension
     ): void {
         $betweenBuilder = $this->getFormFactory()->createNamedBuilder(
             $field->getName(),
-            $this->isFqcnFormTypePossible() ? BetweenType::class : 'datasource_between',
+            BetweenType::class,
             null,
             $options
         );
@@ -252,30 +249,17 @@ class FormFieldExtension extends FieldAbstractExtension
         }
 
         $defaultOptions = [
+            'placeholder' => '',
             'choices' => [
-                 $this->translator->trans('datasource.form.choices.is_null', [], 'DataSourceBundle') => 'null',
-                 $this->translator->trans('datasource.form.choices.is_not_null', [], 'DataSourceBundle') => 'no_null'
+                $this->translator->trans('datasource.form.choices.is_null', [], 'DataSourceBundle') => 'null',
+                $this->translator->trans('datasource.form.choices.is_not_null', [], 'DataSourceBundle') => 'no_null'
             ],
         ];
 
-        if ($this->isSymfonyForm27()) {
-            $defaultOptions['placeholder'] = '';
-        } else {
-            $defaultOptions['empty_value'] = '';
-            $defaultOptions['choices'] = array_flip($defaultOptions['choices']);
-            if (isset($options['choices'])) {
-                $options['choices'] = array_merge(
-                    $defaultOptions['choices'],
-                    array_intersect_key($options['choices'], $defaultOptions['choices'])
-                );
-            }
-        }
-
-        $options = array_merge($defaultOptions, $options);
         $form->add(
             $field->getName(),
-            $this->isFqcnFormTypePossible() ? ChoiceType::class : 'choice',
-            $options
+            ChoiceType::class,
+            array_merge($defaultOptions, $options)
         );
     }
 
@@ -291,27 +275,17 @@ class FormFieldExtension extends FieldAbstractExtension
         }
 
         $defaultOptions = [
+            'placeholder' => '',
             'choices' => [
                 $this->translator->trans('datasource.form.choices.yes', [], 'DataSourceBundle') => '1',
-                $this->translator->trans('datasource.form.choices.no', [], 'DataSourceBundle') => '0',
+                $this->translator->trans('datasource.form.choices.no', [], 'DataSourceBundle') => '0'
             ],
         ];
 
-        if ($this->isSymfonyForm27()) {
-            $defaultOptions['placeholder'] = '';
-        } else {
-            $defaultOptions['empty_value'] = '';
-            $defaultOptions['choices'] = array_flip($defaultOptions['choices']);
-            if (isset($options['choices'])) {
-                $options['choices'] = array_intersect_key($options['choices'], $defaultOptions['choices']);
-            }
-        }
-
-        $options = array_merge($defaultOptions, $options);
         $form->add(
             $field->getName(),
-            $this->isFqcnFormTypePossible() ? ChoiceType::class : 'choice',
-            $options
+            ChoiceType::class,
+            array_merge($defaultOptions, $options)
         );
     }
 
@@ -327,11 +301,6 @@ class FormFieldExtension extends FieldAbstractExtension
         }
 
         $declaredType = $field->getType();
-
-        if (!$this->isFqcnFormTypePossible()) {
-            return $declaredType;
-        }
-
         switch ($declaredType) {
             case 'text':
                 return TextType::class;
@@ -372,7 +341,7 @@ class FormFieldExtension extends FieldAbstractExtension
      * @param FieldTypeInterface $field
      * @param mixed $value
      */
-    private function setParameterValue(array &$array, FieldTypeInterface $field, $value)
+    private function setParameterValue(array &$array, FieldTypeInterface $field, $value): void
     {
         $array[$field->getDataSource()->getName()][DataSourceInterface::PARAMETER_FIELDS][$field->getName()] = $value;
     }
@@ -380,15 +349,5 @@ class FormFieldExtension extends FieldAbstractExtension
     private function clearParameterValue(array &$array, FieldTypeInterface $field): void
     {
         unset($array[$field->getDataSource()->getName()][DataSourceInterface::PARAMETER_FIELDS][$field->getName()]);
-    }
-
-    private function isFqcnFormTypePossible(): bool
-    {
-        return class_exists('Symfony\Component\Form\Extension\Core\Type\RangeType');
-    }
-
-    private function isSymfonyForm27(): bool
-    {
-        return method_exists(FormTypeInterface::class, 'configureOptions');
     }
 }

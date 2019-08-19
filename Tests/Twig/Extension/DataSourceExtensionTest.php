@@ -16,11 +16,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Twig\Extension\FormExtension;
 use Symfony\Bridge\Twig\Extension\TranslationExtension;
-use Symfony\Bridge\Twig\Form\TwigRenderer;
-use Symfony\Bridge\Twig\Form\TwigRendererEngine;
 use Symfony\Bridge\Twig\Tests\Extension\Fixtures\StubTranslator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 use Twig\Error\LoaderError;
@@ -148,18 +145,17 @@ class DataSourceExtensionTest extends TestCase
 
     protected function setUp()
     {
-        $subPath = version_compare(Kernel::VERSION, '2.7.0', '<') ? 'Symfony/Bridge/Twig/' : '';
         $loader = new FilesystemLoader([
-            __DIR__ . '/../../../vendor/symfony/twig-bridge/' . $subPath . 'Resources/views/Form',
+            __DIR__ . '/../../../vendor/symfony/twig-bridge/Resources/views/Form',
             __DIR__ . '/../../../Resources/views', // datasource base theme
         ]);
 
         $twig = new Environment($loader);
         $twig->addExtension(new TranslationExtension(new StubTranslator()));
-        $twig->addExtension($this->getFormExtension($subPath !== ''));
+        $twig->addExtension(new FormExtension());
         $twig->addGlobal('global_var', 'global_value');
-        $this->twig = $twig;
 
+        $this->twig = $twig;
         $this->extension = new DataSourceExtension($this->getContainer(), 'datasource.html.twig');
     }
 
@@ -190,18 +186,5 @@ class DataSourceExtensionTest extends TestCase
     private function getTemplateMock(): MockObject
     {
         return $this->createMock(Template::class);
-    }
-
-    private function getFormExtension(bool $legacy): FormExtension
-    {
-        if (true === $legacy) {
-            $rendererEngine = new TwigRendererEngine(['form_div_layout.html.twig',]);
-            $renderer = new TwigRenderer($rendererEngine);
-            $formExtension = new FormExtension($renderer);
-        } else {
-            $formExtension = new FormExtension();
-        }
-
-        return $formExtension;
     }
 }
