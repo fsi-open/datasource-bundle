@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\Bundle\DataSourceBundle\DependencyInjection\Compiler;
 
 use FSi\Bundle\DataSourceBundle\DataSourceBundle;
@@ -14,7 +16,7 @@ use ReflectionClass;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class TemplatePathPass implements CompilerPassInterface
+final class TemplatePathPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
