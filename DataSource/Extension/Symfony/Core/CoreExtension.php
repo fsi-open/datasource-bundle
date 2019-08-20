@@ -7,14 +7,12 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Core;
 
 use FSi\Component\DataSource\DataSourceAbstractExtension;
 
-/**
- * Main extension for all Symfony based extensions. Its main purpose is to
- * replace binded Request object into array.
- */
 class CoreExtension extends DataSourceAbstractExtension
 {
     public function loadSubscribers()
