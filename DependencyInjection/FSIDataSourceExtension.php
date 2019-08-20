@@ -7,11 +7,12 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\Bundle\DataSourceBundle\DependencyInjection;
 
-use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Collection\EventSubscriberInterface;
-use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Collection\FieldEventSubscriberInterface;
-use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\DBAL\EventSubscriberInterface;
+use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Collection;
+use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\DBAL;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\DependencyInjection\Driver\Doctrine\ORM;
 use FSi\Component\DataSource\Driver\Collection\CollectionAbstractField;
 use FSi\Component\DataSource\Driver\Doctrine\DBAL\DBALAbstractField;
@@ -66,10 +67,10 @@ class FSIDataSourceExtension extends Extension
         $container->registerForAutoconfiguration(DriverFactoryInterface::class)->addTag('datasource.driver.factory');
         $container->registerForAutoconfiguration(DriverExtensionInterface::class)->addTag('datasource.driver.extension');
         $container->registerForAutoconfiguration(CollectionAbstractField::class)->addTag('datasource.driver.collection.field');
-        $container->registerForAutoconfiguration(FieldEventSubscriberInterface::class)
+        $container->registerForAutoconfiguration(Collection\FieldEventSubscriberInterface::class)
             ->addTag('datasource.driver.collection.field.subscriber')
         ;
-        $container->registerForAutoconfiguration(EventSubscriberInterface::class)
+        $container->registerForAutoconfiguration(Collection\EventSubscriberInterface::class)
             ->addTag('datasource.driver.collection.subscriber')
         ;
         $container->registerForAutoconfiguration(DoctrineAbstractField::class)

@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Core\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
