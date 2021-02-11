@@ -9,6 +9,7 @@
 
 namespace FSi\Bundle\DataSourceBundle\Twig\Node;
 
+use FSi\Bundle\DataSourceBundle\Twig\Extension\DataSourceExtension;
 use Twig\Compiler;
 use Twig\Node\Expression\AbstractExpression;
 use Twig\Node\Node;
@@ -24,7 +25,7 @@ class DataSourceThemeNode extends Node
     {
         $compiler
             ->addDebugInfo($this)
-            ->write('$this->env->getExtension(\'FSi\Bundle\DataSourceBundle\Twig\Extension\DataSourceExtension\')->setTheme(')
+            ->write(sprintf('$this->env->getExtension(\'%s\')->setTheme(', DataSourceExtension::class))
             ->subcompile($this->getNode('datasource'))
             ->raw(', ')
             ->subcompile($this->getNode('theme'))

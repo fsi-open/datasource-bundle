@@ -9,13 +9,13 @@
 
 namespace FSi\Bundle\DataSourceBundle\Tests\Fixtures;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManager;
 
 /**
  * It's dumb implementation of ManagerRegistry, but it's enough for testing purposes.
  */
-class TestManagerRegistry implements ManagerRegistry
+class TestManagerRegistryNew implements ManagerRegistry
 {
     /**
      * Test managers name.
@@ -97,6 +97,7 @@ class TestManagerRegistry implements ManagerRegistry
      */
     public function resetManager($name = null)
     {
+        return $this->em;
     }
 
     /**
@@ -104,6 +105,7 @@ class TestManagerRegistry implements ManagerRegistry
      */
     public function getAliasNamespace($alias)
     {
+        return '';
     }
 
     /**

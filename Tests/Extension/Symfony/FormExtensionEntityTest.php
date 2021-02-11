@@ -12,9 +12,11 @@ namespace FSi\Bundle\DataSourceBundle\Tests\Extension\Symfony;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
+use Doctrine\Persistence\ManagerRegistry as PersistenceManagerRegistry;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Driver\DriverExtension;
 use FSi\Bundle\DataSourceBundle\Tests\Fixtures\News;
 use FSi\Bundle\DataSourceBundle\Tests\Fixtures\TestManagerRegistry;
+use FSi\Bundle\DataSourceBundle\Tests\Fixtures\TestManagerRegistryNew;
 use FSi\Component\DataSource\DataSourceInterface;
 use FSi\Component\DataSource\Event\FieldEvent;
 use FSi\Component\DataSource\Field\FieldAbstractExtension;
@@ -31,9 +33,11 @@ use Symfony\Component\Form\ResolvedFormTypeFactory;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 use Symfony\Component\Translation\TranslatorInterface;
 
+use function interface_exists;
+
 class FormExtensionEntityTest extends TestCase
 {
-    public function testEntityField()
+    public function testEntityField(): void
     {
         $formFactory = $this->getFormFactory();
         $translator = $this->createMock(TranslatorInterface::class);
@@ -41,50 +45,51 @@ class FormExtensionEntityTest extends TestCase
         $field = $this->createMock(FieldTypeInterface::class);
         $datasource = $this->createMock(DataSourceInterface::class);
 
-        $datasource->expects($this->any())->method('getName')->will($this->returnValue('datasource'));
+        $datasource->method('getName')->willReturn('datasource');
 
-        $field->expects($this->atLeastOnce())->method('getName')->will($this->returnValue('name'));
-        $field->expects($this->any())->method('getDataSource')->will($this->returnValue($datasource));
-        $field->expects($this->any())->method('getName')->will($this->returnValue('name'));
-        $field->expects($this->any())->method('getType')->will($this->returnValue('entity'));
+        $field->expects(self::atLeastOnce())->method('getName')->willReturn('name');
+        $field->method('getDataSource')->willReturn($datasource);
+        $field->method('getName')->willReturn('name');
+        $field->method('getType')->willReturn('entity');
 
-        $field
-            ->expects($this->any())
-            ->method('hasOption')
-            ->will($this->returnCallback(function (): bool {
-                $args = func_get_args();
-
-                return 'form_options' === array_shift($args);
-            }))
+        $field->method('hasOption')
+            ->willReturnCallback(
+                function (string $option): bool {
+                    return 'form_options' === $option;
+                }
+            )
         ;
 
-        $field
-            ->expects($this->any())
-            ->method('getOption')
-            ->will($this->returnCallback(function () {
-                switch (func_get_arg(0)) {
-                    case 'form_filter':
-                        return true;
-                    case 'form_options':
-                        return ['class' => News::class];
+        $field->method('getOption')
+            ->willReturnCallback(
+                function (string $option) {
+                    switch ($option) {
+                        case 'form_filter':
+                            return true;
+                        case 'form_options':
+                            return ['class' => News::class];
+                    }
+
+                    return null;
                 }
-            }))
+            )
         ;
 
         $extensions = $extension->getFieldTypeExtensions('entity');
         $parameters = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => ['name' => 'value']]];
-        //Form extension will remove 'name' => 'value' since this is not valid entity id (since we have no entities at all).
+        // Form extension will remove 'name' => 'value' since this is not valid entity id
+        // (since we have no entities at all).
         $parameters2 = ['datasource' => [DataSourceInterface::PARAMETER_FIELDS => []]];
         $args = new FieldEvent\ParameterEventArgs($field, $parameters);
         foreach ($extensions as $ext) {
-            $this->assertTrue($ext instanceof FieldAbstractExtension);
+            self::assertInstanceOf(FieldAbstractExtension::class, $ext);
             $ext->preBindParameter($args);
         }
         $parameters = $args->getParameter();
-        $this->assertEquals($parameters2, $parameters);
+        self::assertEquals($parameters2, $parameters);
 
-        $fieldView = $this->createMock(FieldViewInterface::class, [], [$field]);
-        $fieldView->expects($this->atLeastOnce())->method('setAttribute');
+        $fieldView = $this->getMockBuilder(FieldViewInterface::class)->setConstructorArgs([$field])->getMock();
+        $fieldView->expects(self::atLeastOnce())->method('setAttribute');
 
         $args = new FieldEvent\ViewEventArgs($field, $fieldView);
         foreach ($extensions as $ext) {
@@ -95,16 +100,22 @@ class FormExtensionEntityTest extends TestCase
     private function getFormFactory(): FormFactoryInterface
     {
         $typeFactory = new ResolvedFormTypeFactory();
+        if (true === interface_exists(PersistenceManagerRegistry::class)) {
+            $managerRegistry = new TestManagerRegistryNew($this->getEntityManager());
+        } else {
+            $managerRegistry = new TestManagerRegistry($this->getEntityManager());
+        }
+
         $registry = new FormRegistry(
             [
                 new CoreExtension(),
                 new CsrfExtension(new CsrfTokenManager()),
-                new DoctrineOrmExtension(new TestManagerRegistry($this->getEntityManager())),
+                new DoctrineOrmExtension($managerRegistry),
             ],
             $typeFactory
         );
 
-        return new FormFactory($registry, $typeFactory);
+        return new FormFactory($registry);
     }
 
     private function getEntityManager(): EntityManager

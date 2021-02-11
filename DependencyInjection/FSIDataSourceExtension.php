@@ -32,7 +32,7 @@ class FSIDataSourceExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('datasource.xml');
 
         $this->registerDrivers($loader);
@@ -65,8 +65,10 @@ class FSIDataSourceExtension extends Extension
     private function registerForAutoconfiguration(ContainerBuilder $container): void
     {
         $container->registerForAutoconfiguration(DriverFactoryInterface::class)->addTag('datasource.driver.factory');
-        $container->registerForAutoconfiguration(DriverExtensionInterface::class)->addTag('datasource.driver.extension');
-        $container->registerForAutoconfiguration(CollectionAbstractField::class)->addTag('datasource.driver.collection.field');
+        $container->registerForAutoconfiguration(DriverExtensionInterface::class)
+            ->addTag('datasource.driver.extension');
+        $container->registerForAutoconfiguration(CollectionAbstractField::class)
+            ->addTag('datasource.driver.collection.field');
         $container->registerForAutoconfiguration(Collection\FieldEventSubscriberInterface::class)
             ->addTag('datasource.driver.collection.field.subscriber')
         ;
