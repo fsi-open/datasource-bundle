@@ -24,6 +24,9 @@
         "twig/twig": "^2.11"
     },
     "require-dev": {
+        "phpstan/phpstan": "^0.12.66",
+        "phpstan/phpstan-phpunit": "^0.12.15",
+        "squizlabs/php_codesniffer": "^3.5",
         "symfony/form" : "^3.4|^4.0",
         "symfony/phpunit-bridge": "^4.0",
         "symfony/twig-bridge" : "^3.4|^4.0",

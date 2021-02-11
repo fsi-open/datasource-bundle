@@ -19,6 +19,6 @@ class FormType extends BaseFormType
     {
         parent::buildView($view, $form, $options);
 
-        $view->vars['type'] = $form->getConfig()->getType()->getName();
+        $view->vars['type'] = $form->getConfig()->getType()->getInnerType()->getBlockPrefix();
     }
 }

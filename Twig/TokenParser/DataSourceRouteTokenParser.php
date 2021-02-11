@@ -26,7 +26,10 @@ class DataSourceRouteTokenParser extends AbstractTokenParser
         if ($this->parser->getStream()->test(Token::NAME_TYPE, 'with')) {
             $this->parser->getStream()->next();
 
-            if ($this->parser->getStream()->test(Token::PUNCTUATION_TYPE) || $this->parser->getStream()->test(Token::NAME_TYPE)) {
+            if (
+                $this->parser->getStream()->test(Token::PUNCTUATION_TYPE)
+                || $this->parser->getStream()->test(Token::NAME_TYPE)
+            ) {
                 $additional_parameters = $this->parser->getExpressionParser()->parseExpression();
             }
         }

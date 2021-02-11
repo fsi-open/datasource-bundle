@@ -73,7 +73,9 @@ class DriverExtension implements DriverExtensionInterface
     public function getFieldType($type)
     {
         if (false === array_key_exists($type, $this->fieldTypes)) {
-            throw new InvalidArgumentException(sprintf('The field type "%s" is not registered within the service container.', $type));
+            throw new InvalidArgumentException(
+                sprintf('The field type "%s" is not registered within the service container.', $type)
+            );
         }
 
         return $this->fieldTypes[$type];

@@ -9,6 +9,7 @@
 
 namespace FSi\Bundle\DataSourceBundle\Twig\Node;
 
+use FSi\Bundle\DataSourceBundle\Twig\Extension\DataSourceExtension;
 use Twig\Compiler;
 use Twig\Node\Expression\AbstractExpression;
 use Twig\Node\Node;
@@ -38,7 +39,7 @@ class DataSourceRouteNode extends Node
     {
         $compiler
             ->addDebugInfo($this)
-            ->write('$this->env->getExtension(\'FSi\Bundle\DataSourceBundle\Twig\Extension\DataSourceExtension\')->setRoute(')
+            ->write(sprintf('$this->env->getExtension(\'%s\')->setRoute(', DataSourceExtension::class))
             ->subcompile($this->getNode('datasource'))
             ->raw(', ')
             ->subcompile($this->getNode('route'))

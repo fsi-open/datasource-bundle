@@ -52,7 +52,8 @@ final class DataSourcePass implements CompilerPassInterface
             $driverType = $container->getDefinition($driverExtension)->getArgument(0);
 
             $fields = [];
-            foreach ($container->findTaggedServiceIds('datasource.driver.'.$driverType.'.field') as $serviceId => $tag) {
+            $fieldTag = 'datasource.driver.' . $driverType . '.field';
+            foreach ($container->findTaggedServiceIds($fieldTag) as $serviceId => $tag) {
                 $alias = isset($tag[0]['alias']) ? $tag[0]['alias'] : $serviceId;
 
                 $fields[$alias] = new Reference($serviceId);
@@ -61,7 +62,8 @@ final class DataSourcePass implements CompilerPassInterface
             $container->getDefinition($driverExtension)->replaceArgument(1, $fields);
 
             $fieldSubscribers = [];
-            foreach ($container->findTaggedServiceIds('datasource.driver.'.$driverType.'.field.subscriber') as $serviceId => $tag) {
+            $fieldSubscriberTag = 'datasource.driver.' . $driverType . '.field.subscriber';
+            foreach ($container->findTaggedServiceIds($fieldSubscriberTag) as $serviceId => $tag) {
                 $alias = isset($tag[0]['alias']) ? $tag[0]['alias'] : $serviceId;
 
                 $fieldSubscribers[$alias] = new Reference($serviceId);
@@ -70,7 +72,8 @@ final class DataSourcePass implements CompilerPassInterface
             $container->getDefinition($driverExtension)->replaceArgument(2, $fieldSubscribers);
 
             $subscribers = [];
-            foreach ($container->findTaggedServiceIds('datasource.driver.'.$driverType.'.subscriber') as $serviceId => $tag) {
+            $driverSubscriberTag = 'datasource.driver.' . $driverType . '.subscriber';
+            foreach ($container->findTaggedServiceIds($driverSubscriberTag) as $serviceId => $tag) {
                 $alias = isset($tag[0]['alias']) ? $tag[0]['alias'] : $serviceId;
 
                 $subscribers[$alias] = new Reference($serviceId);

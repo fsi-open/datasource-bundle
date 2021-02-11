@@ -21,14 +21,11 @@ final class TemplatePathPass implements CompilerPassInterface
     public function process(ContainerBuilder $container)
     {
         $loaderDefinition = $container->getDefinition('twig.loader.filesystem');
-        if (null === $loaderDefinition) {
-            return;
-        }
 
         $reflection = new ReflectionClass(DataSourceBundle::class);
         $loaderDefinition->addMethodCall(
             'addPath',
-            [dirname($reflection->getFileName()).'/Resources/views']
+            [dirname($reflection->getFileName()) . '/Resources/views']
         );
     }
 }

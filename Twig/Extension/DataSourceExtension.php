@@ -53,7 +53,7 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
     private $additionalParameters;
 
     /**
-     * @var Template
+     * @var string
      */
     private $baseTemplate;
 
@@ -111,7 +111,7 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
      * Theme is nothing more than twig template that contains some or all of blocks required to render DataSource.
      *
      * @param DataSourceViewInterface $dataSource
-     * @param $theme
+     * @param Template|string $theme
      * @param array $vars
      */
     public function setTheme(DataSourceViewInterface $dataSource, $theme, array $vars = [])
@@ -126,7 +126,7 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
      * Set route and optionally additional parameters for specific DataSource.
      *
      * @param DataSourceViewInterface $dataSource
-     * @param $route
+     * @param string $route
      * @param array $additionalParameters
      */
     public function setRoute(DataSourceViewInterface $dataSource, $route, array $additionalParameters = [])
@@ -157,7 +157,7 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
     {
         $fields = $view->getFields();
         $count = 0;
-        /** @var $field FieldViewInterface */
+        /** @var FieldViewInterface $field */
         foreach ($fields as $field) {
             if ($field->hasAttribute('form')) {
                 $count++;
@@ -220,8 +220,16 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
         ];
 
         $options = $this->resolveSortOptions($options, $dataSourceView);
-        $ascendingUrl = $this->getUrl($dataSourceView, $options, $fieldView->getAttribute('parameters_sort_ascending'));
-        $descendingUrl = $this->getUrl($dataSourceView, $options, $fieldView->getAttribute('parameters_sort_descending'));
+        $ascendingUrl = $this->getUrl(
+            $dataSourceView,
+            $options,
+            $fieldView->getAttribute('parameters_sort_ascending')
+        );
+        $descendingUrl = $this->getUrl(
+            $dataSourceView,
+            $options,
+            $fieldView->getAttribute('parameters_sort_descending')
+        );
 
         $viewData = [
             'field' => $fieldView,
@@ -272,8 +280,9 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
         $pagesParams = $view->getAttribute('parameters_pages');
         $current = $view->getAttribute('page');
         $pageCount = count($pagesParams);
-        if ($pageCount < 2)
+        if ($pageCount < 2) {
             return;
+        }
 
         if (isset($options['max_pages'])) {
             $delta = ceil($options['max_pages'] / 2);
@@ -434,7 +443,7 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
      * Return additional parameters that should be passed to the URL generation for specified datasource.
      *
      * @param DataSourceViewInterface $dataSource
-     * @return array
+     * @return string
      */
     private function getUrl(DataSourceViewInterface $dataSource, array $options = [], array $parameters = [])
     {
@@ -444,12 +453,8 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
         return $router->generate(
             $options['route'],
             array_merge(
-                isset($this->additionalParameters[$dataSource->getName()])
-                    ? $this->additionalParameters[$dataSource->getName()]
-                    : [],
-                isset($options['additional_parameters'])
-                    ? $options['additional_parameters']
-                    : [],
+                $this->additionalParameters[$dataSource->getName()] ?? [],
+                $options['additional_parameters'] ?? [],
                 $parameters
             )
         );
@@ -458,7 +463,7 @@ class DataSourceExtension extends AbstractExtension implements InitRuntimeInterf
     /**
      * @param DataSourceViewInterface $view
      * @param array $contextVars
-     * @param $availableBlocks
+     * @param array $availableBlocks
      * @return string
      */
     private function renderTheme(

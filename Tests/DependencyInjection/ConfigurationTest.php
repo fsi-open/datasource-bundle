@@ -22,7 +22,7 @@ class ConfigurationTest extends TestCase
      */
     private $processor;
 
-    public function testDefaultOptions()
+    public function testDefaultOptions(): void
     {
         $defaults = [
             'yaml_configuration' => [
@@ -34,13 +34,14 @@ class ConfigurationTest extends TestCase
                 'template' => '@DataSource/datasource.html.twig'
             ]
         ];
-        $this->assertSame(
+
+        self::assertSame(
             $defaults,
             $this->processor->processConfiguration(new Configuration(), [[]])
         );
     }
 
-    public function testFoldedYamlConfigurationForTrue()
+    public function testFoldedYamlConfigurationForTrue(): void
     {
         $folded = [
             'yaml_configuration' => [
@@ -52,13 +53,14 @@ class ConfigurationTest extends TestCase
                 'template' => '@DataSource/datasource.html.twig'
             ]
         ];
-        $this->assertSame(
+
+        self::assertSame(
             $folded,
             $this->processor->processConfiguration(new Configuration(), [['yaml_configuration' => true]])
         );
     }
 
-    public function testFoldedYamlConfigurationForFalse()
+    public function testFoldedYamlConfigurationForFalse(): void
     {
         $folded = [
             'yaml_configuration' => [
@@ -70,7 +72,8 @@ class ConfigurationTest extends TestCase
                 'template' => '@DataSource/datasource.html.twig'
             ]
         ];
-        $this->assertSame(
+
+        self::assertSame(
             $folded,
             $this->processor->processConfiguration(new Configuration(), [
                 ['yaml_configuration' => false]
@@ -78,13 +81,13 @@ class ConfigurationTest extends TestCase
         );
     }
 
-    public function testThemesOption()
+    public function testThemesOption(): void
     {
         $config = $this->processor->processConfiguration(new Configuration(), [
             ['twig' => ['template' => '@DataSource/custom_datasource.html.twig']]
         ]);
 
-        $this->assertSame(
+        self::assertSame(
             [
                 'twig' => ['template' => '@DataSource/custom_datasource.html.twig', 'enabled' => true],
                 'yaml_configuration' => ['enabled' => true, 'main_configuration_directory' => null]
@@ -93,7 +96,7 @@ class ConfigurationTest extends TestCase
         );
     }
 
-    public function testCustomMainConfigurationFilesPath()
+    public function testCustomMainConfigurationFilesPath(): void
     {
         $config = $this->processor->processConfiguration(new Configuration(), [
             [
@@ -103,7 +106,7 @@ class ConfigurationTest extends TestCase
             ]
         ]);
 
-        $this->assertSame(
+        self::assertSame(
             [
                 'yaml_configuration' => [
                     'main_configuration_directory' => 'a path to main configuration directory',

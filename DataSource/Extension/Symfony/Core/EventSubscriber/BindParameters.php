@@ -26,7 +26,7 @@ class BindParameters implements EventSubscriberInterface
     public function preBindParameters(DataSourceEvent\ParametersEventArgs $event)
     {
         $parameters = $event->getParameters();
-        if ($parameters instanceof Request) {
+        if (true === $parameters instanceof Request) {
             $event->setParameters($parameters->query->all());
         }
     }

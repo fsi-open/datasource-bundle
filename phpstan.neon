@@ -1,0 +1,15 @@
+includes:
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+parameters:
+    treatPhpDocTypesAsCertain: false
+    level: 3
+    paths:
+        - .
+    excludePaths:
+        - DataSource/Extension/Symfony/DependencyInjection/Driver/DriverExtension
+        - DependencyInjection
+        - Resources
+        - Tests/Fixtures/TestManagerRegistry*
+        - Tests/Extension/Symfony/FormExtensionEntityTest
+        - bin
+        - vendor

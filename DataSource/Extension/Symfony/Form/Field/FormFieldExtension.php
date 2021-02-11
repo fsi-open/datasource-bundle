@@ -81,7 +81,7 @@ class FormFieldExtension extends FieldAbstractExtension
                 'form_filter' => true,
                 'form_options' => [],
                 'form_from_options' => [],
-                'form_to_options' =>[]
+                'form_to_options' => []
             ])
             ->setDefined([
                 'form_type',
@@ -337,7 +337,7 @@ class FormFieldExtension extends FieldAbstractExtension
     }
 
     /**
-     * @param array &$array
+     * @param array $array
      * @param FieldTypeInterface $field
      * @param mixed $value
      */

@@ -39,7 +39,7 @@ class DataSourceExtensionTest extends TestCase
      */
     protected $extension;
 
-    public function testInitRuntimeShouldThrowExceptionBecauseNotExistingTheme()
+    public function testInitRuntimeShouldThrowExceptionBecauseNotExistingTheme(): void
     {
         $this->expectException(LoaderError::class);
         $this->expectExceptionMessage('Unable to find template "this_is_not_valid_path.html.twig"');
@@ -49,14 +49,14 @@ class DataSourceExtensionTest extends TestCase
         $this->twig->loadTemplate('datasource.html.twig');
     }
 
-    public function testInitRuntimeWithValidPathToTheme()
+    public function testInitRuntimeWithValidPathToTheme(): void
     {
         $this->twig->addExtension($this->extension);
         // force initRuntime()
-        $this->assertInstanceOf(Template::class, $this->twig->loadTemplate('datasource.html.twig'));
+        self::assertInstanceOf(Template::class, $this->twig->loadTemplate('datasource.html.twig'));
     }
 
-    public function testDataSourceFilterCount()
+    public function testDataSourceFilterCount(): void
     {
         $this->twig->addExtension($this->extension);
         // force initRuntime()
@@ -64,39 +64,39 @@ class DataSourceExtensionTest extends TestCase
 
         $datasourceView = $this->getDataSourceView('datasource');
         $fieldView1 = $this->createMock(FieldViewInterface::class);
-        $fieldView1->expects($this->atLeastOnce())->method('hasAttribute')->with('form')->willReturn(true);
+        $fieldView1->expects(self::atLeastOnce())->method('hasAttribute')->with('form')->willReturn(true);
 
         $fieldView2 = $this->createMock(FieldViewInterface::class);
-        $fieldView2->expects($this->atLeastOnce())->method('hasAttribute')->with('form')->willReturn(false);
+        $fieldView2->expects(self::atLeastOnce())->method('hasAttribute')->with('form')->willReturn(false);
 
         $fieldView3 = $this->createMock(FieldViewInterface::class);
-        $fieldView3->expects($this->atLeastOnce())->method('hasAttribute')->with('form')->willReturn(true);
+        $fieldView3->expects(self::atLeastOnce())->method('hasAttribute')->with('form')->willReturn(true);
 
-        $datasourceView->expects($this->atLeastOnce())
+        $datasourceView->expects(self::atLeastOnce())
             ->method('getFields')
             ->willReturn([$fieldView1, $fieldView2, $fieldView3])
         ;
 
-        $this->assertEquals(2, $this->extension->datasourceFilterCount($datasourceView));
+        self::assertEquals(2, $this->extension->datasourceFilterCount($datasourceView));
     }
 
-    public function testDataSourceRenderBlock()
+    public function testDataSourceRenderBlock(): void
     {
         $this->twig->addExtension($this->extension);
         // force initRuntime()
         $this->twig->loadTemplate('datasource.html.twig');
         $template = $this->getTemplateMock();
-        $template->expects($this->at(0))->method('hasBlock')
+        $template->expects(self::at(0))->method('hasBlock')
             ->with('datasource_datasource_filter')
             ->willReturn(false)
         ;
-        $template->expects($this->at(1))->method('getParent')->with([])->willReturn(false);
-        $template->expects($this->at(2))->method('hasBlock')->with('datasource_filter')->willReturn(true);
+        $template->expects(self::at(1))->method('getParent')->with([])->willReturn(false);
+        $template->expects(self::at(2))->method('hasBlock')->with('datasource_filter')->willReturn(true);
 
         $datasourceView = $this->getDataSourceView('datasource');
         $this->extension->setTheme($datasourceView, $template);
 
-        $template->expects($this->at(3))
+        $template->expects(self::at(3))
             ->method('displayBlock')
             ->with('datasource_filter', [
                 'datasource' => $datasourceView,
@@ -109,7 +109,7 @@ class DataSourceExtensionTest extends TestCase
         $this->extension->datasourceFilter($datasourceView);
     }
 
-    public function testDataSourceRenderBlockFromParent()
+    public function testDataSourceRenderBlockFromParent(): void
     {
         $this->twig->addExtension($this->extension);
         // force initRuntime()
@@ -117,21 +117,21 @@ class DataSourceExtensionTest extends TestCase
 
         $parent = $this->getTemplateMock();
         $template = $this->getTemplateMock();
-        $template->expects($this->at(0))
+        $template->expects(self::at(0))
             ->method('hasBlock')
             ->with('datasource_datasource_filter')
             ->willReturn(false)
         ;
 
-        $template->expects($this->at(1))->method('getParent')->with([])->willReturn(false);
-        $template->expects($this->at(2))->method('hasBlock')->with('datasource_filter')->willReturn(false);
-        $template->expects($this->at(3))->method('getParent')->with([])->willReturn($parent);
-        $parent->expects($this->at(0))->method('hasBlock')->with('datasource_filter')->willReturn(true);
+        $template->expects(self::at(1))->method('getParent')->with([])->willReturn(false);
+        $template->expects(self::at(2))->method('hasBlock')->with('datasource_filter')->willReturn(false);
+        $template->expects(self::at(3))->method('getParent')->with([])->willReturn($parent);
+        $parent->expects(self::at(0))->method('hasBlock')->with('datasource_filter')->willReturn(true);
 
         $datasourceView = $this->getDataSourceView('datasource');
         $this->extension->setTheme($datasourceView, $template);
 
-        $parent->expects($this->at(1))
+        $parent->expects(self::at(1))
             ->method('displayBlock')
             ->with('datasource_filter', [
                 'datasource' => $datasourceView,
@@ -162,28 +162,38 @@ class DataSourceExtensionTest extends TestCase
     private function getRouter(): MockObject
     {
         $router = $this->createMock(RouterInterface::class);
-        $router->expects($this->any())->method('generate')->willReturn('some_route');
+        $router->method('generate')->willReturn('some_route');
 
         return $router;
     }
 
-    private function getContainer(): MockObject
+    /**
+     * @return ContainerInterface&MockObject
+     */
+    private function getContainer(): ContainerInterface
     {
         $container = $this->createMock(ContainerInterface::class);
-        $container->expects($this->any())->method('get')->with('router')->willReturn($this->getRouter());
+        $container->method('get')->with('router')->willReturn($this->getRouter());
 
         return $container;
     }
 
-    private function getDataSourceView(string $name): MockObject
+    /**
+     * @param string $name
+     * @return DataSourceViewInterface&MockObject
+     */
+    private function getDataSourceView(string $name): DataSourceViewInterface
     {
         $datasourceView = $this->createMock(DataSourceViewInterface::class);
-        $datasourceView->expects($this->any())->method('getName')->willReturn($name);
+        $datasourceView->method('getName')->willReturn($name);
 
         return $datasourceView;
     }
 
-    private function getTemplateMock(): MockObject
+    /**
+     * @return Template&MockObject
+     */
+    private function getTemplateMock(): Template
     {
         return $this->createMock(Template::class);
     }
