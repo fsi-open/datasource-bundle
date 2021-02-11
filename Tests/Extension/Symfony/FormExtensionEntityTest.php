@@ -9,12 +9,15 @@
 
 namespace FSi\Bundle\DataSourceBundle\Tests\Extension\Symfony;
 
+use Doctrine\Common\Persistence\ManagerRegistry as CommonManagerRegistry;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
+use Doctrine\Persistence\ManagerRegistry as PersistenceManagerRegistry;
 use FSi\Bundle\DataSourceBundle\DataSource\Extension\Symfony\Form\Driver\DriverExtension;
 use FSi\Bundle\DataSourceBundle\Tests\Fixtures\News;
 use FSi\Bundle\DataSourceBundle\Tests\Fixtures\TestManagerRegistry;
+use FSi\Bundle\DataSourceBundle\Tests\Fixtures\TestManagerRegistryNew;
 use FSi\Component\DataSource\DataSourceInterface;
 use FSi\Component\DataSource\Event\FieldEvent;
 use FSi\Component\DataSource\Field\FieldAbstractExtension;
@@ -30,6 +33,7 @@ use Symfony\Component\Form\FormRegistry;
 use Symfony\Component\Form\ResolvedFormTypeFactory;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 use Symfony\Component\Translation\TranslatorInterface;
+use function interface_exists;
 
 class FormExtensionEntityTest extends TestCase
 {
@@ -95,11 +99,16 @@ class FormExtensionEntityTest extends TestCase
     private function getFormFactory(): FormFactoryInterface
     {
         $typeFactory = new ResolvedFormTypeFactory();
+        if (true === interface_exists(PersistenceManagerRegistry::class)) {
+            $managerRegistry = new TestManagerRegistryNew($this->getEntityManager());
+        } else {
+            $managerRegistry = new TestManagerRegistry($this->getEntityManager());
+        }
         $registry = new FormRegistry(
             [
                 new CoreExtension(),
                 new CsrfExtension(new CsrfTokenManager()),
-                new DoctrineOrmExtension(new TestManagerRegistry($this->getEntityManager())),
+                new DoctrineOrmExtension($managerRegistry),
             ],
             $typeFactory
         );

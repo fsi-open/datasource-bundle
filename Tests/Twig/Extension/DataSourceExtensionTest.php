@@ -9,6 +9,7 @@
 
 namespace FSi\Bundle\DataSourceBundle\Tests\Twig\Extension;
 
+use FSi\Bundle\DataSourceBundle\Tests\Fixtures\StubTranslator;
 use FSi\Bundle\DataSourceBundle\Twig\Extension\DataSourceExtension;
 use FSi\Component\DataSource\DataSourceViewInterface;
 use FSi\Component\DataSource\Field\FieldViewInterface;
@@ -16,7 +17,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\Twig\Extension\FormExtension;
 use Symfony\Bridge\Twig\Extension\TranslationExtension;
-use Symfony\Bridge\Twig\Tests\Extension\Fixtures\StubTranslator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
@@ -143,7 +143,7 @@ class DataSourceExtensionTest extends TestCase
         $this->extension->datasourceFilter($datasourceView);
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $loader = new FilesystemLoader([
             __DIR__ . '/../../../vendor/symfony/twig-bridge/Resources/views/Form',

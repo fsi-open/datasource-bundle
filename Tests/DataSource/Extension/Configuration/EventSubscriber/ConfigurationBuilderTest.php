@@ -174,7 +174,7 @@ class ConfigurationBuilderTest extends TestCase
         $this->subscriber->readConfiguration(new ParametersEventArgs($dataSource, []));
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $kernelMockBuilder = $this->getMockBuilder(Kernel::class)->setConstructorArgs(['dev', true]);
         $kernelMockBuilder->setMethods(
