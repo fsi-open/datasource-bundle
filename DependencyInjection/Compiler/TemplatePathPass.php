@@ -20,11 +20,7 @@ final class TemplatePathPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        if (true === $container->hasDefinition('twig.loader.native_filesystem')) {
-            $loaderDefinition = $container->getDefinition('twig.loader.native_filesystem');
-        } else {
-            $loaderDefinition = $container->getDefinition('twig.loader.filesystem');
-        }
+        $loaderDefinition = $container->getDefinition('twig.loader.native_filesystem');
 
         $reflection = new ReflectionClass(DataSourceBundle::class);
         $loaderDefinition->addMethodCall(
