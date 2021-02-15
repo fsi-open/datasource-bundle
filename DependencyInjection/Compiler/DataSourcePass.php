@@ -15,6 +15,8 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Reference;
 
+use function array_map;
+
 final class DataSourcePass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
@@ -32,16 +34,19 @@ final class DataSourcePass implements CompilerPassInterface
 
         $extensions = [];
         foreach ($container->findTaggedServiceIds('datasource.driver.extension') as $serviceId => $tag) {
-            $alias = isset($tag[0]['alias']) ? $tag[0]['alias'] : $serviceId;
+            $alias = $tag[0]['alias'] ?? $serviceId;
 
-            $extensions[$alias] = new Reference($serviceId);
+            $extensions[$alias] = $serviceId;
         }
 
-        $container->getDefinition('datasource.extension')->replaceArgument(0, $extensions);
+        $extensionsReferences = array_map(static function (string $extensionId): Reference {
+            return new Reference($extensionId);
+        }, $extensions);
+        $container->getDefinition('datasource.extension')->replaceArgument(0, $extensionsReferences);
 
         $subscribers = [];
         foreach ($container->findTaggedServiceIds('datasource.subscriber') as $serviceId => $tag) {
-            $alias = isset($tag[0]['alias']) ? $tag[0]['alias'] : $serviceId;
+            $alias = $tag[0]['alias'] ?? $serviceId;
 
             $subscribers[$alias] = new Reference($serviceId);
         }
@@ -54,7 +59,7 @@ final class DataSourcePass implements CompilerPassInterface
             $fields = [];
             $fieldTag = 'datasource.driver.' . $driverType . '.field';
             foreach ($container->findTaggedServiceIds($fieldTag) as $serviceId => $tag) {
-                $alias = isset($tag[0]['alias']) ? $tag[0]['alias'] : $serviceId;
+                $alias = $tag[0]['alias'] ?? $serviceId;
 
                 $fields[$alias] = new Reference($serviceId);
             }
@@ -64,7 +69,7 @@ final class DataSourcePass implements CompilerPassInterface
             $fieldSubscribers = [];
             $fieldSubscriberTag = 'datasource.driver.' . $driverType . '.field.subscriber';
             foreach ($container->findTaggedServiceIds($fieldSubscriberTag) as $serviceId => $tag) {
-                $alias = isset($tag[0]['alias']) ? $tag[0]['alias'] : $serviceId;
+                $alias = $tag[0]['alias'] ?? $serviceId;
 
                 $fieldSubscribers[$alias] = new Reference($serviceId);
             }
@@ -74,7 +79,7 @@ final class DataSourcePass implements CompilerPassInterface
             $subscribers = [];
             $driverSubscriberTag = 'datasource.driver.' . $driverType . '.subscriber';
             foreach ($container->findTaggedServiceIds($driverSubscriberTag) as $serviceId => $tag) {
-                $alias = isset($tag[0]['alias']) ? $tag[0]['alias'] : $serviceId;
+                $alias = $tag[0]['alias'] ?? $serviceId;
 
                 $subscribers[$alias] = new Reference($serviceId);
             }
