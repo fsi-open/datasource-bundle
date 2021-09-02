@@ -11,10 +11,11 @@ matrix:
 env:
   global:
     - SYMFONY_DEPRECATIONS_HELPER=weak
+      COMPOSER_MEMORY_LIMIT=-1
 
 before_script:
   - phpenv config-rm xdebug.ini
-  - COMPOSER_MEMORY_LIMIT=-1 composer update $COMPOSER_FLAGS
+  - composer update $COMPOSER_FLAGS
 
 script:
   - vendor/bin/phpcs

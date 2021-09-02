@@ -110,21 +110,22 @@ class FormFieldExtension extends FieldAbstractExtension
     public function preBindParameter(FieldEvent\ParameterEventArgs $event)
     {
         $field = $event->getField();
+        $datasource = $field->getDataSource();
+        $datasourceName = $datasource ? $datasource->getName() : null;
+        if (null === $datasourceName || '' === $datasourceName) {
+            return;
+        }
+
         $form = $this->getForm($field);
         if ($form === null) {
             return;
         }
 
-        $fieldOid = spl_object_hash($field);
+        $fieldOid = $this->getFieldHash($datasource, $field);
         $parameter = $event->getParameter();
 
         if ($form->isSubmitted()) {
             $form = $this->getForm($field, true);
-        }
-
-        $datasourceName = $field->getDataSource() ? $field->getDataSource()->getName() : null;
-        if (null === $datasourceName || '' === $datasourceName) {
-            return;
         }
 
         if ($this->hasParameterValue($parameter, $field)) {
@@ -147,8 +148,12 @@ class FormFieldExtension extends FieldAbstractExtension
     public function preGetParameter(FieldEvent\ParameterEventArgs $event)
     {
         $field = $event->getField();
-        $fieldOid = spl_object_hash($field);
+        $datasource = $field->getDataSource();
+        if (null === $datasource) {
+            return;
+        }
 
+        $fieldOid = $this->getFieldHash($datasource, $field);
         if (isset($this->parameters[$fieldOid])) {
             $parameters = [];
             $this->setParameterValue($parameters, $field, $this->parameters[$fieldOid]);
@@ -167,7 +172,7 @@ class FormFieldExtension extends FieldAbstractExtension
             return null;
         }
 
-        $fieldOid = spl_object_hash($field);
+        $fieldOid = $this->getFieldHash($datasource, $field);
         if (isset($this->forms[$fieldOid]) && !$force) {
             return $this->forms[$fieldOid];
         }
@@ -349,5 +354,15 @@ class FormFieldExtension extends FieldAbstractExtension
     private function clearParameterValue(array &$array, FieldTypeInterface $field): void
     {
         unset($array[$field->getDataSource()->getName()][DataSourceInterface::PARAMETER_FIELDS][$field->getName()]);
+    }
+
+    /**
+     * @param DataSourceInterface $dataSource
+     * @param object $field
+     * @return string
+     */
+    private function getFieldHash(DataSourceInterface $dataSource, $field): string
+    {
+        return spl_object_hash($dataSource) . spl_object_hash($field);
     }
 }
